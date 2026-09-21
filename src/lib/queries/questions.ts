@@ -1,5 +1,5 @@
 /** Public read queries for the question box. */
-import { desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db, experiments, questions } from "@/lib/db";
 
 /** Questions visible to readers: approved ones, plus ones that became experiments. */
@@ -15,7 +15,8 @@ export function listPublicQuestions(limit = 100) {
       experimentNumber: experiments.number,
     })
     .from(questions)
-    .leftJoin(experiments, eq(questions.experimentId, experiments.id))
+    // Only link to experiments that are public.
+    .leftJoin(experiments, and(eq(questions.experimentId, experiments.id), eq(experiments.isPublic, true)))
     .where(inArray(questions.status, ["approved", "promoted"]))
     .orderBy(desc(questions.createdAt))
     .limit(limit);
