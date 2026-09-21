@@ -1,0 +1,51 @@
+/* Editor-only styles. Reading styles come from prose.css so the page matches. */
+
+.editor-surface p.is-editor-empty:first-child::before,
+.editor-surface .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-line-strong);
+}
+
+/* Footnote numbers count up live as you add them. */
+.editor-surface { counter-reset: footnote; }
+.editor-surface sup.fn { counter-increment: footnote; }
+.editor-surface sup.fn .fn-ref::before { content: counter(footnote); }
+.editor-surface sup.fn button.fn-ref { background: none; border: 0; padding: 0 0.1em; font: inherit; }
+
+.editor-surface .ProseMirror-selectednode,
+.editor-surface [data-type="block-math"].ProseMirror-selectednode {
+  outline: 2px solid var(--color-pen);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.editor-surface [data-type="inline-math"],
+.editor-surface [data-type="block-math"] { cursor: pointer; }
+.editor-surface [data-type="block-math"] { text-align: center; padding: 0.5em 0; }
+
+.editor-surface .button-block button,
+.prose-lab .button-block button {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding: 0.6em 1.3em;
+  border-radius: var(--radius-note);
+}
+
+.editor-surface table { table-layout: fixed; }
+.editor-surface td,
+.editor-surface th { position: relative; min-width: 4rem; }
+.editor-surface .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-pen-soft);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.editor-surface figure[data-size="full"] { margin-inline: 0; }

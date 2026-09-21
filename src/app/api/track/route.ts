@@ -3,6 +3,7 @@
  * Always answers 204 so a failure never shows up on the page.
  */
 import { z } from "zod";
+import { isOwner } from "@/auth";
 import { recordDepth, recordRead, recordShare } from "@/lib/analytics/record";
 import { clientIp, country, deviceType, isBot, referrerHost, todayUtc, visitorHash } from "@/lib/analytics/visitor";
 import { site } from "@/lib/site";
@@ -18,6 +19,8 @@ const noContent = () => new Response(null, { status: 204 });
 export async function POST(request: Request) {
   const ua = request.headers.get("user-agent") ?? "";
   if (isBot(ua)) return noContent();
+  // My own visits (while signed in) don't count.
+  if (await isOwner()) return noContent();
 
   const parsed = Event.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return noContent();
