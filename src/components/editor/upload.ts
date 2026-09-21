@@ -1,20 +1,23 @@
-/** Browser-side image upload to Vercel Blob (via a token from /api/upload). */
-import { upload } from "@vercel/blob/client";
-import { slugify } from "@/lib/slug";
-
+/**
+ * Browser-side image upload: ask our server for a signed URL, then send the
+ * file straight to Supabase Storage (it never passes through our server).
+ */
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 
 export async function uploadImage(file: File): Promise<string> {
   if (!IMAGE_TYPES.includes(file.type)) throw new Error("Only JPEG, PNG, WebP, GIF or AVIF images.");
-  const dot = file.name.lastIndexOf(".");
-  const base = slugify(dot > 0 ? file.name.slice(0, dot) : file.name, 40);
-  const ext = dot > 0 ? file.name.slice(dot + 1).toLowerCase() : "jpg";
-  const blob = await upload(`posts/${base}.${ext}`, file, {
-    access: "public",
-    handleUploadUrl: "/api/upload",
-    contentType: file.type,
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
   });
-  return blob.url;
+  const data = (await res.json()) as { uploadUrl?: string; publicUrl?: string; error?: string };
+  if (!res.ok || !data.uploadUrl || !data.publicUrl) throw new Error(data.error ?? "Upload failed.");
+
+  const put = await fetch(data.uploadUrl, { method: "PUT", headers: { "content-type": file.type }, body: file });
+  if (!put.ok) throw new Error(`Storage rejected the file (${put.status}).`);
+  return data.publicUrl;
 }
 
 /** Opens the OS file picker and resolves with the chosen images (possibly none). */
