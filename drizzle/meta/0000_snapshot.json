@@ -1,5 +1,5 @@
 {
-  "id": "2fa22c71-2694-4bfa-b3c6-b2bccaf335ae",
+  "id": "1ffef02c-d99b-44ad-afed-2d0bfe214553",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -172,7 +172,7 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.post_reads": {
       "name": "post_reads",
@@ -298,7 +298,7 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.posts": {
       "name": "posts",
@@ -495,7 +495,7 @@
       },
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.questions": {
       "name": "questions",
@@ -582,7 +582,7 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     },
     "public.share_events": {
       "name": "share_events",
@@ -650,7 +650,7 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
+      "isRLSEnabled": true
     }
   },
   "enums": {

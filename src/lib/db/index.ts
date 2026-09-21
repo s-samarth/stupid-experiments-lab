@@ -1,17 +1,20 @@
 /**
- * Database client. Neon's HTTP driver sends each query as one HTTPS request,
- * which suits serverless functions (no connection pool to exhaust).
+ * Database client for Supabase Postgres via postgres.js.
+ * Use Supabase's *transaction pooler* URL (port 6543) in serverless: the pooler
+ * shares a few real connections among many short-lived functions.
  */
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "./schema";
 
 function createDb() {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and add your Neon URL.");
+    throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and add your Supabase URL.");
   }
-  return drizzle(neon(url), { schema });
+  // The transaction pooler doesn't support prepared statements, so turn them off.
+  const client = postgres(url, { prepare: false, max: 5 });
+  return { client, db: drizzle(client, { schema }) };
 }
 
 let instance: ReturnType<typeof createDb> | undefined;
@@ -19,7 +22,13 @@ let instance: ReturnType<typeof createDb> | undefined;
 /** Lazily created so builds without a database still compile. */
 export function db() {
   instance ??= createDb();
-  return instance;
+  return instance.db;
+}
+
+/** Closes the connection pool. Only scripts need this; the server keeps it open. */
+export async function closeDb(): Promise<void> {
+  await instance?.client.end();
+  instance = undefined;
 }
 
 export * from "./schema";

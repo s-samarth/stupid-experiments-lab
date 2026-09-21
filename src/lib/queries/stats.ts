@@ -49,12 +49,12 @@ export async function getTotals(scope: Scope) {
 export async function getDailyReads(scope: Scope): Promise<{ day: string; reads: number }[]> {
   const days = scope.days ?? 90;
   const postFilter = scope.postId ? sql`AND ${postReads.postId} = ${scope.postId}` : sql``;
-  const result = await db().execute<{ day: string; reads: number }>(sql`
+  const rows = await db().execute<{ day: string; reads: number }>(sql`
     SELECT to_char(d::date, 'YYYY-MM-DD') AS day, count(${postReads.id})::int AS reads
     FROM generate_series(current_date - ${days - 1}::int, current_date, interval '1 day') AS d
     LEFT JOIN ${postReads} ON ${postReads.day} = d::date ${postFilter}
     GROUP BY d ORDER BY d`);
-  return result.rows;
+  return [...rows];
 }
 
 export function getTopPosts(scope: Scope, limit = 8) {

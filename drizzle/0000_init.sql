@@ -29,6 +29,7 @@ CREATE TABLE "experiments" (
 	CONSTRAINT "experiments_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
+ALTER TABLE "experiments" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "post_reads" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"post_id" integer NOT NULL,
@@ -41,6 +42,7 @@ CREATE TABLE "post_reads" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "post_reads" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "posts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"slug" text NOT NULL,
@@ -64,6 +66,7 @@ CREATE TABLE "posts" (
 	CONSTRAINT "posts_slug_unique" UNIQUE("slug")
 );
 --> statement-breakpoint
+ALTER TABLE "posts" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "questions" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"text" text NOT NULL,
@@ -76,6 +79,7 @@ CREATE TABLE "questions" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "questions" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE TABLE "share_events" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"post_id" integer NOT NULL,
@@ -83,6 +87,7 @@ CREATE TABLE "share_events" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "share_events" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 ALTER TABLE "experiments" ADD CONSTRAINT "experiments_spawned_from_id_experiments_id_fk" FOREIGN KEY ("spawned_from_id") REFERENCES "public"."experiments"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "post_reads" ADD CONSTRAINT "post_reads_post_id_posts_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."posts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "posts" ADD CONSTRAINT "posts_experiment_id_experiments_id_fk" FOREIGN KEY ("experiment_id") REFERENCES "public"."experiments"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint

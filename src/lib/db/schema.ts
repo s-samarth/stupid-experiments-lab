@@ -1,6 +1,10 @@
 /**
  * Database schema. Drizzle turns these table definitions into both SQL
  * migrations and TypeScript types (see the `$inferSelect` exports below).
+ *
+ * Every table has row-level security ON with no policies. That locks out
+ * Supabase's public REST API entirely; the site itself connects as the table
+ * owner, which RLS doesn't restrict.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -59,7 +63,7 @@ export const experiments = pgTable("experiments", {
   askedBy: text("asked_by"),
   isPublic: boolean("is_public").notNull().default(true),
   ...timestamps,
-});
+}).enableRLS();
 
 /** A piece of writing. Optionally attached to an experiment. */
 export const posts = pgTable(
@@ -90,7 +94,7 @@ export const posts = pgTable(
     index("posts_status_published_idx").on(t.status, t.publishedAt),
     index("posts_experiment_idx").on(t.experimentId),
   ],
-);
+).enableRLS();
 
 /** Question box: captured by the owner or suggested by readers. */
 export const questions = pgTable("questions", {
@@ -102,7 +106,7 @@ export const questions = pgTable("questions", {
   experimentId: integer("experiment_id").references(() => experiments.id, { onDelete: "set null" }),
   ipHash: text("ip_hash"),
   ...timestamps,
-});
+}).enableRLS();
 
 /**
  * One row per reader per post per day. `visitorHash` is a salted daily hash of
@@ -127,7 +131,7 @@ export const postReads = pgTable(
     uniqueIndex("post_reads_unique_visit").on(t.postId, t.visitorHash, t.day),
     index("post_reads_day_idx").on(t.day),
   ],
-);
+).enableRLS();
 
 /** A reader clicked one of the share buttons. */
 export const shareEvents = pgTable(
@@ -141,7 +145,7 @@ export const shareEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [index("share_events_post_idx").on(t.postId)],
-);
+).enableRLS();
 
 export type Experiment = typeof experiments.$inferSelect;
 export type NewExperiment = typeof experiments.$inferInsert;

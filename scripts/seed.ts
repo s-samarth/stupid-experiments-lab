@@ -7,7 +7,7 @@ config({ path: ".env.local" });
 
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
-import { db, experiments, postReads, posts, questions } from "../src/lib/db";
+import { closeDb, db, experiments, postReads, posts, questions } from "../src/lib/db";
 import { renderPost } from "../src/lib/editor/render";
 import { EXPERIMENTS, POSTS, QUESTIONS } from "./seed-data";
 
@@ -80,7 +80,9 @@ async function seedReads(postId: number, total: number, sinceDays: number) {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  })
+  .finally(closeDb);
