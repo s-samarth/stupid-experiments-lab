@@ -8,11 +8,13 @@ import { Plugin } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { baseExtensions } from "@/lib/editor/extensions";
 import { ButtonBlock, VerdictStamp } from "@/lib/editor/nodes/blocks";
+import { DataChart } from "@/lib/editor/nodes/data-chart";
 import { Embed } from "@/lib/editor/nodes/embed";
 import { Figure, Gallery } from "@/lib/editor/nodes/figure";
 import { Footnote } from "@/lib/editor/nodes/footnote";
 import { insertImages } from "./insert-items";
 import { promptForLink } from "./link";
+import { DataChartView } from "./node-views/DataChartView";
 import { EmbedView } from "./node-views/EmbedView";
 import { FigureView } from "./node-views/FigureView";
 import { GalleryView } from "./node-views/GalleryView";
@@ -22,7 +24,7 @@ import { IMAGE_TYPES } from "./upload";
 
 type Options = { ask: Ask; notify: (message: string) => void };
 
-const OVERRIDDEN = new Set(["figure", "gallery", "embed", "footnote", "buttonBlock", "verdictStamp"]);
+const OVERRIDDEN = new Set(["figure", "gallery", "embed", "footnote", "buttonBlock", "verdictStamp", "dataChart"]);
 
 export function clientExtensions({ ask, notify }: Options): AnyExtension[] {
   return [
@@ -33,6 +35,7 @@ export function clientExtensions({ ask, notify }: Options): AnyExtension[] {
     Footnote.extend({ addNodeView: () => ReactNodeViewRenderer(FootnoteView) }),
     ButtonBlock.extend({ addNodeView: () => ReactNodeViewRenderer(ButtonView) }),
     VerdictStamp.extend({ addNodeView: () => ReactNodeViewRenderer(VerdictView) }),
+    DataChart.extend({ addNodeView: () => ReactNodeViewRenderer(DataChartView) }),
     MathClickToEdit.configure({ ask }),
     Extension.create({
       name: "linkShortcut",

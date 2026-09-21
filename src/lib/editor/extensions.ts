@@ -11,6 +11,7 @@ import { TableKit } from "@tiptap/extension-table";
 import StarterKit from "@tiptap/starter-kit";
 import { common, createLowlight } from "lowlight";
 import { ButtonBlock, Callout, Hypothesis, MarginNote, VerdictStamp } from "./nodes/blocks";
+import { DataChart } from "./nodes/data-chart";
 import { Embed } from "./nodes/embed";
 import { Figure, Gallery } from "./nodes/figure";
 import { Footnote } from "./nodes/footnote";
@@ -64,5 +65,6 @@ export function baseExtensions(): AnyExtension[] {
     MarginNote,
     VerdictStamp,
     ButtonBlock,
+    DataChart,
   ];
 }

@@ -155,3 +155,11 @@
 .prose-lab .embed-card-kind { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted); }
 .prose-lab .embed-card-url { font-size: 0.95rem; overflow-wrap: anywhere; }
 .prose-lab .embed[data-kind="spotify"] iframe { height: 152px; }
+
+/* Data chart block: horizontal bars, values always printed. */
+.prose-lab .data-chart-rows { display: flex; flex-direction: column; gap: 0.45em; font-family: var(--font-sans); font-size: 0.9rem; }
+.prose-lab .data-chart-row { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr) auto; align-items: center; gap: 0.75em; }
+.prose-lab .data-chart-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prose-lab .data-chart-track { height: 0.7em; background: var(--color-paper-deep); border-radius: 0 4px 4px 0; }
+.prose-lab .data-chart-fill { display: block; height: 100%; background: var(--color-chart); border-radius: 0 4px 4px 0; }
+.prose-lab .data-chart-value { font-family: var(--font-mono); font-size: 0.8rem; min-width: 3.5rem; text-align: right; }

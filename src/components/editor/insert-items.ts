@@ -113,6 +113,22 @@ export const INSERT_ITEMS: InsertItem[] = [
     },
   },
   { key: "margin", label: "Margin note", hint: "Handwritten aside", group: "lab", run: (e) => chain(e).setNode("marginNote").run() },
+  {
+    key: "chart",
+    label: "Data chart",
+    hint: "Paste label, value",
+    group: "lab",
+    run: async (e, { ask }) => {
+      const r = await ask({
+        title: "Chart data",
+        fields: [
+          { name: "csv", label: "One row per line: label, value", multiline: true, placeholder: "Week 1, 2.4\nWeek 2, -3.1", required: true },
+          { name: "caption", label: "Caption" },
+        ],
+      });
+      if (r) chain(e).insertContent({ type: "dataChart", attrs: r }).run();
+    },
+  },
 ];
 
 export function filterItems(query: string): InsertItem[] {
