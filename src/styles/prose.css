@@ -1,0 +1,145 @@
+/*
+ * Reading styles for post bodies. The same `.prose-lab` class wraps both the
+ * public post and the editor, so what you write is what readers see.
+ */
+.prose-lab {
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+.prose-lab > * + * {
+  margin-top: 1.1em;
+}
+
+.prose-lab h1,
+.prose-lab h2,
+.prose-lab h3,
+.prose-lab h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 1.8em;
+}
+.prose-lab h1 { font-size: 2rem; }
+.prose-lab h2 { font-size: 1.6rem; }
+.prose-lab h3 { font-size: 1.3rem; }
+.prose-lab h4 {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.prose-lab a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-amber);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.prose-lab a:hover { text-decoration-color: var(--color-ink); }
+
+.prose-lab strong { font-weight: 600; }
+
+.prose-lab ul,
+.prose-lab ol { padding-left: 1.4em; }
+.prose-lab ul { list-style: disc; }
+.prose-lab ol { list-style: decimal; }
+.prose-lab li + li { margin-top: 0.35em; }
+.prose-lab li::marker { color: var(--color-muted); }
+
+.prose-lab blockquote {
+  border-left: 2px solid var(--color-line-strong);
+  padding-left: 1.1em;
+  color: #3b4250;
+}
+
+/* Pull quote: big italic line with an amber rule. */
+.prose-lab blockquote[data-variant="pull"] {
+  border-left: 3px solid var(--color-amber);
+  font-size: 1.5rem;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-ink);
+  margin: 1.6em 0;
+}
+
+.prose-lab hr {
+  border: 0;
+  margin: 2.4em auto;
+  text-align: center;
+  height: 1em;
+}
+.prose-lab hr::after {
+  content: "* * *";
+  font-family: var(--font-mono);
+  color: var(--color-line-strong);
+  letter-spacing: 0.6em;
+}
+
+.prose-lab code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--color-paper-deep);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+.prose-lab pre {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  background: #1d2430;
+  color: #e8e4d8;
+  padding: 1em 1.2em;
+  border-radius: var(--radius-note);
+  overflow-x: auto;
+}
+.prose-lab pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+.prose-lab figure { margin: 1.8em 0; }
+.prose-lab figure img { width: 100%; height: auto; border-radius: 2px; }
+.prose-lab figcaption {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  text-align: center;
+  margin-top: 0.6em;
+}
+.prose-lab figure[data-size="wide"] { margin-inline: -4rem; }
+.prose-lab figure[data-size="full"] { margin-inline: calc(50% - 50vw); }
+.prose-lab figure[data-size="full"] img { border-radius: 0; }
+@media (max-width: 800px) {
+  .prose-lab figure[data-size="wide"] { margin-inline: 0; }
+}
+
+.prose-lab table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+}
+.prose-lab th,
+.prose-lab td {
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.5em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-lab th { font-weight: 500; border-bottom-color: var(--color-ink); }
+
+.prose-lab sup,
+.prose-lab sub { font-size: 0.7em; }
+
+/* Code highlighting (lowlight / highlight.js class names). */
+.prose-lab .hljs-keyword,
+.prose-lab .hljs-built_in { color: #f2a33a; }
+.prose-lab .hljs-string { color: #9fd8a8; }
+.prose-lab .hljs-comment { color: #8a90a0; font-style: italic; }
+.prose-lab .hljs-number,
+.prose-lab .hljs-literal { color: #9fc1f0; }
+.prose-lab .hljs-title,
+.prose-lab .hljs-function { color: #f5c98b; }

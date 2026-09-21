@@ -1,26 +1,67 @@
 @import "tailwindcss";
+@import "../styles/prose.css";
+@import "../styles/lab.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Design tokens. Tailwind v4 reads `@theme` and generates utilities from it,
+ * e.g. `--color-ink` becomes `text-ink`, `bg-ink`, `border-ink`.
+ * Colours carry over from samarthsaraswat.com (paper, ink, amber).
+ */
+@theme {
+  --color-paper: #f6f3ea;
+  --color-paper-deep: #ebe6d8;
+  --color-card: #fffdf7;
+  --color-sticky: #fff6da;
+  --color-ink: #1d2430;
+  --color-muted: #5f6673;
+  --color-line: #d9d3c3;
+  --color-line-strong: #b9b19c;
+  --color-amber: #f2a33a;
+  --color-amber-soft: #ffe7b8;
+  --color-amber-deep: #9a5b0c;
+  --color-pen: #2b5ba8;
+  --color-pen-soft: #e9f0fa;
+  --color-red: #c8412b;
+  --color-green: #0b7a5e;
+
+  --radius-note: 4px;
 }
 
+/* Font families come from next/font CSS variables set in layout.tsx. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-hand: var(--font-caveat), cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-amber-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-pen);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
