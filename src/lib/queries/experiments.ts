@@ -43,11 +43,13 @@ export function listActiveExperiments() {
   );
 }
 
-export async function getExperiment(slug: string) {
+/** Loads one public experiment (by slug or id) with its parent and children. */
+export async function getExperiment(key: { slug: string } | { id: number }) {
+  const match = "slug" in key ? eq(experiments.slug, key.slug) : eq(experiments.id, key.id);
   const rows = await db()
     .select()
     .from(experiments)
-    .where(and(eq(experiments.slug, slug), eq(experiments.isPublic, true)))
+    .where(and(match, eq(experiments.isPublic, true)))
     .limit(1);
   const experiment = rows[0];
   if (!experiment) return null;

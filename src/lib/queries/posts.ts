@@ -1,5 +1,5 @@
 /** Public read queries for posts. Only "live" posts are ever returned here. */
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db, experiments, postReads, posts } from "@/lib/db";
 
 /** Published, or scheduled with a publish time that has already passed. */
@@ -28,12 +28,17 @@ const listColumns = {
 
 export type PostListItem = Awaited<ReturnType<typeof listLivePosts>>[number];
 
-type ListOptions = { limit?: number; kind?: "log" | "finding" | "essay"; tag?: string };
+type ListOptions = { limit?: number; kind?: "log" | "finding" | "essay"; tag?: string; search?: string };
 
-export async function listLivePosts({ limit = 50, kind, tag }: ListOptions = {}) {
+export async function listLivePosts({ limit = 50, kind, tag, search }: ListOptions = {}) {
   const filters = [isLive];
   if (kind) filters.push(eq(posts.kind, kind));
   if (tag) filters.push(sql`${tag} = ANY(${posts.tags})`);
+  if (search) {
+    // Escape LIKE wildcards so "%" in a search means a literal percent sign.
+    const pattern = `%${search.slice(0, 80).replace(/[\\%_]/g, "\\$&")}%`;
+    filters.push(or(ilike(posts.title, pattern), ilike(posts.subtitle, pattern), ilike(posts.bodyHtml, pattern))!);
+  }
   return db()
     .select(listColumns)
     .from(posts)

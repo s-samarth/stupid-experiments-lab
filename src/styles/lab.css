@@ -113,3 +113,45 @@
 }
 .group:hover .ink-link,
 .ink-link:hover { text-decoration-color: var(--color-amber); }
+
+/* Footnote preview on hover/focus, read from data-note: no JavaScript needed. */
+.prose-lab sup.fn { position: relative; }
+.prose-lab .fn-ref:hover::after,
+.prose-lab .fn-ref:focus-visible::after {
+  content: attr(data-note);
+  position: absolute;
+  bottom: 1.8em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  padding: 0.5em 0.75em;
+  border-radius: var(--radius-note);
+  white-space: normal;
+  z-index: 5;
+}
+.prose-lab .fn-back { text-decoration: none; margin-left: 0.2em; }
+
+.prose-lab .verdict-line { margin: 1.4em 0; }
+.prose-lab .verdict-line .stamp { font-size: 0.95rem; padding: 0.2em 0.8em; }
+
+.prose-lab .embed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-note);
+  background: var(--color-card);
+  padding: 0.8em 1em;
+  text-decoration: none;
+  font-family: var(--font-sans);
+}
+.prose-lab .embed-card:hover { border-color: var(--color-ink); }
+.prose-lab .embed-card-kind { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-muted); }
+.prose-lab .embed-card-url { font-size: 0.95rem; overflow-wrap: anywhere; }
+.prose-lab .embed[data-kind="spotify"] iframe { height: 152px; }

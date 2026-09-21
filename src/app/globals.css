@@ -19,6 +19,8 @@
   --color-amber: #f2a33a;
   --color-amber-soft: #ffe7b8;
   --color-amber-deep: #9a5b0c;
+  /* Chart bars: validated ≥3:1 against paper (brand amber is only 1.9:1). */
+  --color-chart: #c47612;
   --color-pen: #2b5ba8;
   --color-pen-soft: #e9f0fa;
   --color-red: #c8412b;
