@@ -5,8 +5,12 @@ import { db, experiments, postReads, posts } from "@/lib/db";
 /** Published, or scheduled with a publish time that has already passed. */
 export const isLive = sql`(${posts.status} = 'published' OR (${posts.status} = 'scheduled' AND ${posts.publishedAt} <= now()))`;
 
-/** Total reads per post as a correlated subquery. */
-const readsCount = sql<number>`(SELECT count(*)::int FROM ${postReads} WHERE ${postReads.postId} = ${posts.id})`;
+/**
+ * Total reads per post as a correlated subquery. The outer column is written as a
+ * fully qualified raw name: Drizzle drops the table prefix in single-table queries,
+ * and an unqualified "id" here would silently match post_reads.id instead.
+ */
+const readsCount = sql<number>`(SELECT count(*)::int FROM ${postReads} pr WHERE pr.post_id = ${sql.raw('"posts"."id"')})`;
 
 const listColumns = {
   id: posts.id,

@@ -4,7 +4,8 @@ import { db, experiments, posts } from "@/lib/db";
 import type { ExperimentStatus, Verdict } from "@/lib/loop";
 import { isLive } from "./posts";
 
-const entryCount = sql<number>`(SELECT count(*)::int FROM ${posts} WHERE ${posts.experimentId} = ${experiments.id} AND ${isLive})`;
+/** Live entries per experiment. Outer column fully qualified (see readsCount in posts.ts). */
+const entryCount = sql<number>`(SELECT count(*)::int FROM ${posts} WHERE ${posts.experimentId} = ${sql.raw('"experiments"."id"')} AND ${isLive})`;
 
 export type ExperimentListItem = Awaited<ReturnType<typeof listExperiments>>[number];
 

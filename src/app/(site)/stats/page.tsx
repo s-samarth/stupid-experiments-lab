@@ -80,11 +80,11 @@ export default async function StatsPage(props: PageProps<"/stats">) {
         )}
         <Breakdown
           title="Where readers came from"
-          rows={referrers.map((r) => ({ label: r.key ? (REFERRER_LABEL[r.key] ?? r.key) : "direct or apps", value: r.reads, display: `${r.pct}%` }))}
+          rows={referrers.map((r) => ({ label: r.key ? (REFERRER_LABEL[r.key] ?? r.key) : "direct or apps", value: r.reads, display: r.pct === 0 ? "<1%" : `${r.pct}%` }))}
         />
         <Breakdown
           title="Countries"
-          rows={countries.map((c) => ({ label: countryName(c.key), value: c.reads, display: `${c.pct}%` }))}
+          rows={countries.map((c) => ({ label: countryName(c.key), value: c.reads, display: c.pct === 0 ? "<1%" : `${c.pct}%` }))}
         />
         {!post && (
           <div className="max-w-60">

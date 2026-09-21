@@ -33,7 +33,7 @@ export async function renderCard({ kicker, title, subtitle, stamp }: Card): Prom
   ]);
   const fonts = [
     serif && { name: "Newsreader", data: serif, weight: 500 as const, style: "normal" as const },
-    serifItalic && { name: "Newsreader", data: serifItalic, weight: 400 as const, style: "italic" as const },
+    serifItalic && { name: "Newsreader Italic", data: serifItalic, weight: 400 as const, style: "italic" as const },
     mono && { name: "Plex Mono", data: mono, weight: 400 as const, style: "normal" as const },
   ].filter((f): f is NonNullable<typeof f> => Boolean(f));
 
@@ -45,8 +45,8 @@ export async function renderCard({ kicker, title, subtitle, stamp }: Card): Prom
           {site.name} / {kicker}
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: titleSize, lineHeight: 1.08, maxWidth: 1000 }}>{title}</div>
-          {subtitle && <div style={{ marginTop: 22, fontSize: 34, fontStyle: "italic", color: "#5f6673", maxWidth: 980 }}>{subtitle}</div>}
+          <div style={{ fontSize: titleSize, fontWeight: 500, lineHeight: 1.08, maxWidth: 1000 }}>{title}</div>
+          {subtitle && <div style={{ marginTop: 22, fontSize: 34, fontFamily: "Newsreader Italic", fontStyle: "italic", color: "#5f6673", maxWidth: 980 }}>{subtitle}</div>}
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "2px solid #1d2430", paddingTop: 24 }}>
           <div style={{ display: "flex", fontFamily: "Plex Mono", fontSize: 24 }}>{author.name}</div>

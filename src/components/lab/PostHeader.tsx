@@ -36,7 +36,7 @@ export function PostHeader(props: Props) {
         <span className="text-muted">
           · <time dateTime={publishedAt?.toISOString()}>{formatDate(publishedAt)}</time> · {readingMinutes} min ·
         </span>
-        <ReadCount count={reads} suffix=" reads" className="text-muted" />
+        <ReadCount count={reads} suffix={reads === 1 ? " read" : " reads"} className="text-muted" />
       </div>
     </header>
   );

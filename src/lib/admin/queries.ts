@@ -13,7 +13,7 @@ export function listAllPosts() {
       publishedAt: posts.publishedAt,
       updatedAt: posts.updatedAt,
       experimentNumber: experiments.number,
-      reads: sql<number>`(SELECT count(*)::int FROM ${postReads} WHERE ${postReads.postId} = ${posts.id})`,
+      reads: sql<number>`(SELECT count(*)::int FROM ${postReads} pr WHERE pr.post_id = ${sql.raw('"posts"."id"')})`,
     })
     .from(posts)
     .leftJoin(experiments, eq(posts.experimentId, experiments.id))
