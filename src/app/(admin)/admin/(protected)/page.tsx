@@ -3,6 +3,7 @@ import { createPost } from "@/lib/admin/post-actions";
 import { listAllPosts } from "@/lib/admin/queries";
 import { formatCount, formatShortDate } from "@/lib/format";
 import { experimentCode } from "@/lib/loop";
+import { site } from "@/lib/site";
 
 const STATUS_STYLE = {
   draft: "bg-paper-deep text-muted",
@@ -51,6 +52,7 @@ export default async function AdminPostsPage() {
                   {p.title || <span className="text-muted italic">Untitled draft</span>}
                 </Link>
                 <span className="ml-2 font-mono text-[11px] text-muted">{p.kind}</span>
+                {p.status !== "draft" && <LiveLink slug={p.slug} scheduled={p.status === "scheduled"} />}
               </td>
               <td className="py-2.5">
                 <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] ${STATUS_STYLE[p.status]}`}>{p.status}</span>
@@ -71,5 +73,17 @@ export default async function AdminPostsPage() {
         </tbody>
       </table>
     </main>
+  );
+}
+
+/** Where the post lives publicly. Scheduled posts 404 until their time comes. */
+function LiveLink({ slug, scheduled }: { slug: string; scheduled: boolean }) {
+  const path = `/p/${slug}`;
+  const label = `${new URL(site.url).host}${path}`;
+  if (scheduled) return <span className="block truncate font-mono text-[11px] text-muted">goes live at {label}</span>;
+  return (
+    <a href={path} target="_blank" rel="noreferrer" className="block truncate font-mono text-[11px] text-pen hover:underline">
+      {label} ↗
+    </a>
   );
 }

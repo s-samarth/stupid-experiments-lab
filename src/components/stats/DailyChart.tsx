@@ -39,7 +39,8 @@ export function DailyChart({ data }: Props) {
         </div>
       </div>
       <figcaption className="mt-2 text-[13px] text-muted">
-        Reads per day. Busiest: {formatShortDate(peak.day)} with {formatCount(peak.reads)}.
+        Reads per day.{" "}
+        {peak.reads > 0 ? `Busiest: ${formatShortDate(peak.day)} with ${formatCount(peak.reads)}.` : "No reads in this range yet."}
       </figcaption>
       <details className="mt-2 text-[13px]">
         <summary className="cursor-pointer text-muted">Show as table</summary>
