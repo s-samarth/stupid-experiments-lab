@@ -22,9 +22,9 @@ export type EditablePost = PostSettings & {
   status: "draft" | "scheduled" | "published";
 };
 
-type Props = { post: EditablePost; experiments: { id: number; number: number; title: string }[] };
+type Props = { post: EditablePost };
 
-export function PostEditor({ post, experiments }: Props) {
+export function PostEditor({ post }: Props) {
   const ask = usePrompt();
   const { toast, notify } = useToast();
   const [title, setTitle] = useState(post.title);
@@ -94,7 +94,7 @@ export function PostEditor({ post, experiments }: Props) {
         </div>
         {showSettings && (
           <div className="border-l border-line py-8 pl-6">
-            <SettingsPanel settings={settings} onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))} experiments={experiments} title={title} />
+            <SettingsPanel settings={settings} onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))} title={title} />
           </div>
         )}
       </div>

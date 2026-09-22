@@ -7,27 +7,12 @@
  * owner, which RLS doesn't restrict.
  */
 import { sql } from "drizzle-orm";
-import {
-  boolean,
-  date,
-  index,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  serial,
-  smallint,
-  text,
-  timestamp,
-  uniqueIndex,
-  type AnyPgColumn,
-} from "drizzle-orm/pg-core";
-import { EXPERIMENT_STATUSES, VERDICTS } from "@/lib/loop";
+import { date, index, integer, jsonb, pgEnum, pgTable, serial, smallint, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { VERDICTS } from "@/lib/loop";
 
-export const experimentStatus = pgEnum("experiment_status", EXPERIMENT_STATUSES);
 export const verdict = pgEnum("verdict", VERDICTS);
-export const postKind = pgEnum("post_kind", ["log", "finding", "essay"]);
 export const postStatus = pgEnum("post_status", ["draft", "scheduled", "published"]);
+/** "promoted" means the question became a post. */
 export const questionStatus = pgEnum("question_status", ["pending", "approved", "rejected", "promoted"]);
 export const questionSource = pgEnum("question_source", ["owner", "reader"]);
 
@@ -39,33 +24,7 @@ const timestamps = {
     .$onUpdate(() => new Date()),
 };
 
-/** An experiment: the container that log entries and findings belong to. */
-export const experiments = pgTable("experiments", {
-  id: serial("id").primaryKey(),
-  number: integer("number").notNull().unique(),
-  slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  question: text("question").notNull(),
-  hypothesis: text("hypothesis"),
-  measure: text("measure"),
-  killCriterion: text("kill_criterion"),
-  stage: smallint("stage").notNull().default(1),
-  status: experimentStatus("status").notNull().default("running"),
-  verdict: verdict("verdict"),
-  /** Short handwritten status line on cards, e.g. "down 3.1%. hmm." */
-  scribble: text("scribble"),
-  tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
-  startedOn: date("started_on"),
-  endedOn: date("ended_on"),
-  spawnedFromId: integer("spawned_from_id").references((): AnyPgColumn => experiments.id, {
-    onDelete: "set null",
-  }),
-  askedBy: text("asked_by"),
-  isPublic: boolean("is_public").notNull().default(true),
-  ...timestamps,
-}).enableRLS();
-
-/** A piece of writing. Optionally attached to an experiment. */
+/** A blog post. Each one walks the nine-step loop from question to next question. */
 export const posts = pgTable(
   "posts",
   {
@@ -73,15 +32,14 @@ export const posts = pgTable(
     slug: text("slug").notNull().unique(),
     title: text("title").notNull().default(""),
     subtitle: text("subtitle"),
-    kind: postKind("kind").notNull().default("essay"),
-    experimentId: integer("experiment_id").references(() => experiments.id, { onDelete: "set null" }),
-    stage: smallint("stage"),
     coverImage: text("cover_image"),
     /** Editor document (Tiptap JSON). */
     body: jsonb("body").notNull().default({ type: "doc", content: [] }),
     /** HTML rendered from `body` at save time, so readers never wait on it. */
     bodyHtml: text("body_html").notNull().default(""),
     readingMinutes: smallint("reading_minutes").notNull().default(1),
+    /** Copied from the first verdict stamp in the body at save time. */
+    verdict: verdict("verdict"),
     tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
     seoTitle: text("seo_title"),
     seoDescription: text("seo_description"),
@@ -90,24 +48,21 @@ export const posts = pgTable(
     publishedAt: timestamp("published_at", { withTimezone: true }),
     ...timestamps,
   },
-  (t) => [
-    index("posts_status_published_idx").on(t.status, t.publishedAt),
-    index("posts_experiment_idx").on(t.experimentId),
-  ],
+  (t) => [index("posts_status_published_idx").on(t.status, t.publishedAt)],
 ).enableRLS();
 
-/** Question box: captured by the owner or suggested by readers. */
+/** Question box: captured by the owner or sent in by readers. */
 export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
   text: text("text").notNull(),
   askerName: text("asker_name"),
   source: questionSource("source").notNull().default("owner"),
   status: questionStatus("status").notNull().default("pending"),
-  experimentId: integer("experiment_id").references(() => experiments.id, { onDelete: "set null" }),
+  /** The post this question turned into, once it's "promoted". */
+  postId: integer("post_id").references(() => posts.id, { onDelete: "set null" }),
   ipHash: text("ip_hash"),
   ...timestamps,
 }).enableRLS();
-
 /**
  * One row per reader per post per day. `visitorHash` is a salted daily hash of
  * IP + user agent, so nobody can be tracked across days and no raw IP is stored.
@@ -147,8 +102,6 @@ export const shareEvents = pgTable(
   (t) => [index("share_events_post_idx").on(t.postId)],
 ).enableRLS();
 
-export type Experiment = typeof experiments.$inferSelect;
-export type NewExperiment = typeof experiments.$inferInsert;
 export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
 export type Question = typeof questions.$inferSelect;

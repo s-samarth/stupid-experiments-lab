@@ -1,22 +1,7 @@
-import { VERDICT_COLOR, type ExperimentStatus, type Verdict } from "@/lib/loop";
+import { VERDICT_COLOR, type Verdict } from "@/lib/loop";
 
-type StampProps = {
-  verdict: Verdict | null;
-  status?: ExperimentStatus | null;
-  className?: string;
-};
-
-/** Rubber-stamp label for an experiment's outcome ("busted", "weird"...). */
-export function Stamp({ verdict, status, className = "" }: StampProps) {
-  if (verdict) {
-    return <span className={`stamp ${VERDICT_COLOR[verdict]} ${className}`}>{verdict}</span>;
-  }
-  if (status === "running" || status === "writing-up") {
-    const label = status === "running" ? "still running" : "writing up";
-    return <span className={`stamp ${VERDICT_COLOR.running} ${className}`}>{label}</span>;
-  }
-  if (status === "abandoned") {
-    return <span className={`stamp text-muted ${className}`}>abandoned</span>;
-  }
-  return null;
+/** Rubber-stamp label for how a post's experiment ended ("busted", "weird"...). */
+export function Stamp({ verdict, className = "" }: { verdict: Verdict | null; className?: string }) {
+  if (!verdict) return null;
+  return <span className={`stamp ${VERDICT_COLOR[verdict]} ${className}`}>{verdict}</span>;
 }

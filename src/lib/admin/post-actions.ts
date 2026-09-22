@@ -8,6 +8,7 @@ import { z } from "zod";
 import { requireOwner } from "@/auth";
 import { db, posts } from "@/lib/db";
 import { renderPost } from "@/lib/editor/render";
+import { loopTemplate } from "@/lib/editor/template";
 import { draftSlug, isDraftSlug, slugify } from "@/lib/slug";
 
 const optionalText = z.string().trim().max(300).nullable().transform((v) => v || null);
@@ -17,9 +18,6 @@ const PostInput = z.object({
   subtitle: optionalText,
   body: z.object({ type: z.literal("doc") }).passthrough(),
   slug: z.string().trim().max(80).regex(/^[a-z0-9-]*$/, "Slugs use lowercase letters, numbers and dashes."),
-  kind: z.enum(["log", "finding", "essay"]),
-  experimentId: z.number().int().positive().nullable(),
-  stage: z.number().int().min(1).max(9).nullable(),
   tags: z.array(z.string().trim().toLowerCase().min(1).max(30)).max(8),
   seoTitle: optionalText,
   seoDescription: optionalText,
@@ -29,12 +27,10 @@ export type PostInput = z.input<typeof PostInput>;
 
 export type SaveResult = { ok: true; slug: string; savedAt: string } | { ok: false; error: string };
 
-export async function createPost(experimentId?: number) {
+/** A new draft, pre-filled with the nine loop headings. */
+export async function createPost() {
   await requireOwner();
-  const [row] = await db()
-    .insert(posts)
-    .values({ slug: draftSlug(), kind: experimentId ? "log" : "essay", experimentId: experimentId ?? null })
-    .returning({ id: posts.id });
+  const [row] = await db().insert(posts).values({ slug: draftSlug(), body: loopTemplate() }).returning({ id: posts.id });
   redirect(`/admin/posts/${row.id}`);
 }
 
@@ -54,7 +50,7 @@ export async function savePost(id: number, input: PostInput): Promise<SaveResult
   const rendered = renderPost(data.body);
   const [row] = await db()
     .update(posts)
-    .set({ ...rest, ...(requestedSlug ? { slug: requestedSlug } : {}), bodyHtml: rendered.html, readingMinutes: rendered.readingMinutes })
+    .set({ ...rest, ...(requestedSlug ? { slug: requestedSlug } : {}), bodyHtml: rendered.html, readingMinutes: rendered.readingMinutes, verdict: rendered.verdict })
     .where(eq(posts.id, id))
     .returning({ slug: posts.slug, status: posts.status });
   if (!row) return { ok: false, error: "This post no longer exists." };
@@ -109,6 +105,5 @@ async function uniqueSlug(base: string, id: number): Promise<string> {
 
 /** Clears cached pages that might show this post. */
 function revalidatePublic(slug: string) {
-  for (const path of ["/", "/writing", "/experiments", "/stats", `/p/${slug}`]) revalidatePath(path);
-  revalidatePath("/experiments/[slug]", "page");
+  for (const path of ["/", "/writing", "/questions", "/stats", `/p/${slug}`]) revalidatePath(path);
 }

@@ -6,7 +6,7 @@ import { Breakdown } from "@/components/stats/Breakdown";
 import { DailyChart } from "@/components/stats/DailyChart";
 import { StatTiles } from "@/components/stats/StatTiles";
 import { formatCount } from "@/lib/format";
-import { getLabRecord } from "@/lib/queries/experiments";
+import { getLabRecord } from "@/lib/queries/posts";
 import { RANGES, findPostForStats, getBreakdown, getDailyReads, getTopPosts, getTotals, type RangeKey } from "@/lib/queries/stats";
 
 export const dynamic = "force-dynamic";

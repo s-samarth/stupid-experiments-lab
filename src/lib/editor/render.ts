@@ -5,24 +5,74 @@
 import { generateHTML } from "@tiptap/html/server";
 import type { JSONContent } from "@tiptap/core";
 import katex from "katex";
+import { VERDICTS, type Verdict } from "@/lib/loop";
+import { slugify } from "@/lib/slug";
 import { baseExtensions } from "./extensions";
 import { highlightCodeBlocks } from "./highlight";
 
-export type RenderedPost = { html: string; readingMinutes: number; footnoteCount: number };
+export type RenderedPost = { html: string; readingMinutes: number; footnoteCount: number; verdict: Verdict | null };
 
 const WORDS_PER_MINUTE = 230;
 
 export function renderPost(doc: JSONContent): RenderedPost {
   const notes: string[] = [];
-  const numbered = numberFootnotes(doc, notes);
+  const numbered = numberFootnotes(pruneEmptySections(doc), notes);
   let html = generateHTML(numbered, baseExtensions());
-  html = highlightCodeBlocks(renderMath(html));
+  html = anchorSections(highlightCodeBlocks(renderMath(html)));
   if (notes.length > 0) html += footnotesSection(notes);
   return {
     html,
     readingMinutes: Math.max(1, Math.round(countWords(doc) / WORDS_PER_MINUTE)),
     footnoteCount: notes.length,
+    verdict: findVerdict(doc),
   };
+}
+
+/** Section headings (h2) in rendered HTML, for the reader's contents rail. */
+export function listSections(html: string): { id: string; title: string }[] {
+  return [...html.matchAll(/<h2 id="([^"]+)">(.*?)<\/h2>/g)].map((m) => ({
+    id: m[1],
+    title: unescapeHtml(m[2].replace(/<[^>]+>/g, "")),
+  }));
+}
+
+/**
+ * Drops empty paragraphs, then any section heading left with nothing under it,
+ * so a template step the author skipped doesn't show up as a bare heading.
+ */
+function pruneEmptySections(doc: JSONContent): JSONContent {
+  const blocks = (doc.content ?? []).filter((n) => !(n.type === "paragraph" && !n.content?.length));
+  const kept = blocks.filter((n, i) => {
+    if (n.type !== "heading" || n.attrs?.level !== 2) return true;
+    const next = blocks[i + 1];
+    return next !== undefined && !(next.type === "heading" && next.attrs?.level === 2);
+  });
+  return { ...doc, content: kept };
+}
+
+/** Gives every h2 an id (from its text) so sections can be linked to. */
+function anchorSections(html: string): string {
+  const used = new Set<string>();
+  return html.replace(/<h2>(.*?)<\/h2>/g, (_m, inner: string) => {
+    const base = slugify(unescapeHtml(inner.replace(/<[^>]+>/g, "")), 50);
+    let id = base;
+    for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
+    used.add(id);
+    return `<h2 id="${id}">${inner}</h2>`;
+  });
+}
+
+/** The first verdict stamp in the post, which becomes the post's list stamp. */
+function findVerdict(node: JSONContent): Verdict | null {
+  if (node.type === "verdictStamp") {
+    const v = node.attrs?.verdict;
+    return (VERDICTS as readonly string[]).includes(v) ? (v as Verdict) : null;
+  }
+  for (const child of node.content ?? []) {
+    const found = findVerdict(child);
+    if (found) return found;
+  }
+  return null;
 }
 
 /** Walks the document in reading order and gives each footnote its number. */

@@ -1,47 +1,56 @@
-import { addOwnerQuestion, deleteQuestion, promoteQuestion, setQuestionStatus } from "@/lib/admin/experiment-actions";
+import { QuestionBucket } from "@/components/admin/QuestionBucket";
+import { addOwnerQuestion } from "@/lib/admin/question-actions";
 import { listQuestionsForReview } from "@/lib/admin/queries";
-import { formatShortDate } from "@/lib/format";
 
-const small = "rounded-note border border-line px-2.5 py-1 text-[12px] hover:border-ink";
-
+/**
+ * The question box, sorted into buckets. Reader questions land in the inbox and
+ * stay private until you put them on the public board.
+ */
 export default async function AdminQuestionsPage() {
   const all = await listQuestionsForReview();
+  const by = (status: (typeof all)[number]["status"]) => all.filter((q) => q.status === status);
+  const rejected = by("rejected");
+
   return (
     <main className="mx-auto max-w-4xl px-5 py-8">
       <h1 className="font-serif text-[28px]">Question box</h1>
+      <p className="mt-1 text-[14px] text-muted">
+        Readers&apos; questions arrive in the inbox, newest first. Nothing is public until you put it on the board.
+      </p>
 
       <form action={addOwnerQuestion} className="mt-5 flex gap-2">
         <label htmlFor="new-q" className="sr-only">New question</label>
-        <input id="new-q" name="text" required maxLength={280} placeholder="Capture a question before it escapes…" className="flex-1 rounded-note border border-line bg-card px-3 py-2 font-serif text-[17px] focus:border-ink focus:outline-none" />
+        <input id="new-q" name="text" required maxLength={280} placeholder="Capture your own question (goes straight on the board)…" className="flex-1 rounded-note border border-line bg-card px-3 py-2 font-serif text-[17px] focus:border-ink focus:outline-none" />
         <button type="submit" className="rounded-note bg-ink px-4 text-[14px] text-paper">Add</button>
       </form>
 
-      <ul className="mt-6 border-t border-ink">
-        {all.length === 0 && <li className="py-8 text-center font-serif text-muted italic">Empty. Suspicious.</li>}
-        {all.map((q) => (
-          <li key={q.id} className={`flex flex-wrap items-center gap-3 border-b border-line py-3 ${q.status === "rejected" ? "opacity-50" : ""}`}>
-            <div className="min-w-0 flex-1">
-              <p className="font-serif text-[18px]">{q.text}</p>
-              <p className="font-mono text-[11px] text-muted">
-                {q.status} · {q.source === "reader" ? `from ${q.askerName || "a reader"}` : "mine"} · {formatShortDate(q.createdAt)}
-              </p>
-            </div>
-            {/* Each button is its own tiny form bound to one action and one question. */}
-            <div className="flex gap-1.5">
-              {q.status !== "approved" && q.status !== "promoted" && (
-                <form action={setQuestionStatus.bind(null, q.id, "approved")}><button className={small}>Approve</button></form>
-              )}
-              {q.status !== "promoted" && (
-                <form action={promoteQuestion.bind(null, q.id)}><button className={`${small} bg-amber-soft`}>Make it an experiment</button></form>
-              )}
-              {q.status !== "rejected" && q.status !== "promoted" && (
-                <form action={setQuestionStatus.bind(null, q.id, "rejected")}><button className={small}>Reject</button></form>
-              )}
-              <form action={deleteQuestion.bind(null, q.id)}><button className={`${small} text-red`}>Delete</button></form>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <QuestionBucket
+        title="Inbox"
+        hint="private · only you see these"
+        questions={by("pending")}
+        actions={["approve", "write", "reject"]}
+        empty="Inbox zero. Nobody's asked anything new."
+      />
+      <QuestionBucket
+        title="On the public board"
+        hint="visible at /questions"
+        questions={by("approved")}
+        actions={["write", "unpublish"]}
+        empty="The board is empty. Put a question up from the inbox."
+      />
+      <QuestionBucket
+        title="Written up"
+        hint="shown publicly once the post is live"
+        questions={by("promoted")}
+        actions={["restore", "delete"]}
+        empty="No questions have become posts yet."
+      />
+      {rejected.length > 0 && (
+        <details className="mt-2">
+          <summary className="mt-8 cursor-pointer font-mono text-[12px] text-muted">Rejected · {rejected.length}</summary>
+          <QuestionBucket title="Rejected" hint="hidden" questions={rejected} actions={["restore", "delete"]} empty="" />
+        </details>
+      )}
     </main>
   );
 }

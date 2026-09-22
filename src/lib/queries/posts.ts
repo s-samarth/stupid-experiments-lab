@@ -1,6 +1,7 @@
 /** Public read queries for posts. Only "live" posts are ever returned here. */
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
-import { db, experiments, postReads, posts } from "@/lib/db";
+import { and, asc, desc, eq, gt, ilike, lt, or, sql } from "drizzle-orm";
+import { db, postReads, posts } from "@/lib/db";
+import type { Verdict } from "@/lib/loop";
 
 /** Published, or scheduled with a publish time that has already passed. */
 export const isLive = sql`(${posts.status} = 'published' OR (${posts.status} = 'scheduled' AND ${posts.publishedAt} <= now()))`;
@@ -17,26 +18,20 @@ const listColumns = {
   slug: posts.slug,
   title: posts.title,
   subtitle: posts.subtitle,
-  kind: posts.kind,
-  stage: posts.stage,
   tags: posts.tags,
   readingMinutes: posts.readingMinutes,
   publishedAt: posts.publishedAt,
   reads: readsCount,
-  experimentNumber: experiments.number,
-  experimentSlug: experiments.slug,
-  experimentTitle: experiments.title,
-  verdict: experiments.verdict,
-  experimentStatus: experiments.status,
+  verdict: posts.verdict,
 };
 
 export type PostListItem = Awaited<ReturnType<typeof listLivePosts>>[number];
 
-type ListOptions = { limit?: number; kind?: "log" | "finding" | "essay"; tag?: string; search?: string };
+type ListOptions = { limit?: number; verdict?: Verdict; tag?: string; search?: string };
 
-export async function listLivePosts({ limit = 50, kind, tag, search }: ListOptions = {}) {
+export async function listLivePosts({ limit = 50, verdict, tag, search }: ListOptions = {}) {
   const filters = [isLive];
-  if (kind) filters.push(eq(posts.kind, kind));
+  if (verdict) filters.push(eq(posts.verdict, verdict));
   if (tag) filters.push(sql`${tag} = ANY(${posts.tags})`);
   if (search) {
     // Escape LIKE wildcards so "%" in a search means a literal percent sign.
@@ -46,15 +41,9 @@ export async function listLivePosts({ limit = 50, kind, tag, search }: ListOptio
   return db()
     .select(listColumns)
     .from(posts)
-    .leftJoin(experiments, eq(posts.experimentId, experiments.id))
     .where(and(...filters))
     .orderBy(desc(posts.publishedAt))
     .limit(limit);
-}
-
-/** Findings for the home page: finished write-ups first, newest first. */
-export function listFindings(limit = 5) {
-  return listLivePosts({ limit, kind: "finding" });
 }
 
 export async function getLivePost(slug: string) {
@@ -66,20 +55,27 @@ export async function getLivePost(slug: string) {
   return rows[0] ?? null;
 }
 
-/** All live entries in one experiment, oldest first (the lab log order). */
-export function listExperimentEntries(experimentId: number) {
-  return db()
-    .select(listColumns)
-    .from(posts)
-    .leftJoin(experiments, eq(posts.experimentId, experiments.id))
-    .where(and(eq(posts.experimentId, experimentId), isLive))
-    .orderBy(asc(posts.publishedAt));
-}
-
 export async function listAllTags() {
   const rows = await db()
     .select({ tag: sql<string>`unnest(${posts.tags})` })
     .from(posts)
     .where(isLive);
   return [...new Set(rows.map((r) => r.tag))].sort();
+}
+
+/** The posts on either side of this one, by publish date (for reading on). */
+export async function getNeighbours(publishedAt: Date) {
+  const pick = { slug: posts.slug, title: posts.title };
+  const [older, newer] = await Promise.all([
+    db().select(pick).from(posts).where(and(isLive, lt(posts.publishedAt, publishedAt))).orderBy(desc(posts.publishedAt)).limit(1),
+    db().select(pick).from(posts).where(and(isLive, gt(posts.publishedAt, publishedAt))).orderBy(asc(posts.publishedAt)).limit(1),
+  ]);
+  return { older: older[0] ?? null, newer: newer[0] ?? null };
+}
+
+/** Counts for the "lab record" card: how the published posts ended. */
+export async function getLabRecord() {
+  const rows = await db().select({ verdict: posts.verdict }).from(posts).where(isLive);
+  const count = (v: Verdict) => rows.filter((r) => r.verdict === v).length;
+  return { total: rows.length, confirmed: count("confirmed"), busted: count("busted"), weird: count("weird"), inconclusive: count("inconclusive") };
 }

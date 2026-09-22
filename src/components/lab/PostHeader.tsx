@@ -1,5 +1,4 @@
 import { formatDate } from "@/lib/format";
-import { experimentCode } from "@/lib/loop";
 import { author } from "@/lib/site";
 import { ReadCount } from "./ReadCount";
 
@@ -10,22 +9,14 @@ type Props = {
   readingMinutes: number;
   reads: number;
   tags: string[];
-  experimentNumber?: number;
-  entryIndex?: number;
-  entryTotal?: number;
 };
 
 export function PostHeader(props: Props) {
-  const { title, subtitle, publishedAt, readingMinutes, reads, tags, experimentNumber, entryIndex, entryTotal } = props;
-  const meta = [
-    experimentNumber ? experimentCode(experimentNumber) : "essay",
-    ...tags.slice(0, 2),
-    entryIndex && entryTotal && entryTotal > 1 ? `entry ${entryIndex} of ${entryTotal}` : null,
-  ].filter(Boolean);
+  const { title, subtitle, publishedAt, readingMinutes, reads, tags } = props;
 
   return (
     <header>
-      <p className="font-mono text-[12px] text-muted">{meta.join(" · ")}</p>
+      {tags.length > 0 && <p className="font-mono text-[12px] text-muted">{tags.slice(0, 3).join(" · ")}</p>}
       <h1 className="mt-3 mb-2.5 font-serif text-[34px] leading-[1.1] text-balance sm:text-[40px]">{title}</h1>
       {subtitle && <p className="font-serif text-[20px] leading-snug text-muted italic">{subtitle}</p>}
       <div className="my-6 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[14px]">

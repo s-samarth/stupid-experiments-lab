@@ -1,34 +1,29 @@
 import type { Metadata } from "next";
 import { FilterChips, param } from "@/components/lab/FilterChips";
 import { PostRow } from "@/components/lab/PostRow";
+import { VERDICTS } from "@/lib/loop";
 import { listAllTags, listLivePosts } from "@/lib/queries/posts";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Writing" };
 
-const KINDS = [
-  { value: "finding", label: "findings" },
-  { value: "log", label: "log entries" },
-  { value: "essay", label: "essays" },
-] as const;
-
 export default async function WritingPage(props: PageProps<"/writing">) {
   const sp = await props.searchParams;
-  const current = { kind: param(sp.kind), tag: param(sp.tag), q: param(sp.q) };
-  const kind = KINDS.find((k) => k.value === current.kind)?.value;
+  const current = { verdict: param(sp.verdict), tag: param(sp.tag), q: param(sp.q) };
+  const verdict = VERDICTS.find((v) => v === current.verdict);
   const [posts, tags] = await Promise.all([
-    listLivePosts({ limit: 200, kind, tag: current.tag, search: current.q }),
+    listLivePosts({ limit: 200, verdict, tag: current.tag, search: current.q }),
     listAllTags(),
   ]);
 
   return (
     <div className="mx-auto max-w-3xl px-5 pt-10 sm:px-8">
       <h1 className="font-serif text-[36px] leading-tight">Writing</h1>
-      <p className="mt-2 max-w-xl font-serif text-[18px] text-muted">Log entries from the middle of things, findings from the end of them.</p>
+      <p className="mt-2 max-w-xl font-serif text-[18px] text-muted">Every post is one trip around the loop: a question, a test, and what I found.</p>
 
       {/* A plain GET form: submitting it just sets ?q= in the URL. */}
       <form action="/writing" className="mt-6 flex gap-2" role="search">
-        {current.kind && <input type="hidden" name="kind" value={current.kind} />}
+        {current.verdict && <input type="hidden" name="verdict" value={current.verdict} />}
         <label htmlFor="q" className="sr-only">Search writing</label>
         <input
           id="q"
@@ -44,7 +39,7 @@ export default async function WritingPage(props: PageProps<"/writing">) {
       </form>
 
       <div className="mt-4 space-y-2">
-        <FilterChips basePath="/writing" param="kind" label="kind" current={current} options={[...KINDS]} />
+        <FilterChips basePath="/writing" param="verdict" label="ended" current={current} options={VERDICTS.map((v) => ({ value: v, label: v }))} />
         {tags.length > 0 && <FilterChips basePath="/writing" param="tag" label="tag" current={current} options={tags.map((t) => ({ value: t, label: t }))} />}
       </div>
 

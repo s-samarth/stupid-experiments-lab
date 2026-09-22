@@ -1,8 +1,9 @@
 /** Public read queries for the question box. */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { db, experiments, questions } from "@/lib/db";
+import { db, posts, questions } from "@/lib/db";
+import { isLive } from "./posts";
 
-/** Questions visible to readers: approved ones, plus ones that became experiments. */
+/** Questions readers can see: ones on the board, plus ones that became (live) posts. */
 export function listPublicQuestions(limit = 100) {
   return db()
     .select({
@@ -11,12 +12,12 @@ export function listPublicQuestions(limit = 100) {
       askerName: questions.askerName,
       source: questions.source,
       status: questions.status,
-      experimentSlug: experiments.slug,
-      experimentNumber: experiments.number,
+      postSlug: posts.slug,
+      postTitle: posts.title,
     })
     .from(questions)
-    // Only link to experiments that are public.
-    .leftJoin(experiments, and(eq(questions.experimentId, experiments.id), eq(experiments.isPublic, true)))
+    // Only link to posts that are actually published.
+    .leftJoin(posts, and(eq(questions.postId, posts.id), isLive))
     .where(inArray(questions.status, ["approved", "promoted"]))
     .orderBy(desc(questions.createdAt))
     .limit(limit);

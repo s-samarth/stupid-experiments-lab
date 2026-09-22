@@ -1,6 +1,7 @@
 # Stupid Experiments and Public Findings Lab
 
-A personal public lab: curiosity turns into experiments, experiments into writing.
+A personal blog run like a lab notebook. Every post walks one loop, top to bottom:
+question → clarify → research → hypothesis → experiment → log → findings → reflect → next question.
 Readers read, share and see live stats. Only the owner writes.
 
 **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind v4 · Tiptap editor · Drizzle ORM ·
@@ -8,9 +9,11 @@ Supabase (Postgres + Storage) · Auth.js (GitHub, owner-only) · Vercel.
 
 ## How it fits together
 
-- **Experiments** (`EXP-012`) hold a question, hypothesis, loop stage (1–9), status and verdict.
-- **Posts** are log entries, findings or standalone essays, optionally attached to an experiment.
-- **Question box**: readers suggest questions anonymously; they're moderated in `/admin/questions`.
+- **Posts** start from a fixed template: one heading per loop step (`src/lib/editor/template.ts`).
+  Sections left empty are dropped when the post is rendered. The first verdict stamp in a post
+  becomes its list stamp (confirmed / busted / weird / inconclusive).
+- **Question box**: reader questions land in a private inbox at `/admin/questions`. The owner puts
+  them on the public board, rejects them, or starts a post from one ("Write about it").
 - **Analytics** are cookieless: one row per reader per post per day, keyed by a salted daily hash.
   Everything aggregate is public at `/stats`.
 - The editor saves Tiptap JSON and pre-renders HTML at save time (`src/lib/editor/render.ts`),

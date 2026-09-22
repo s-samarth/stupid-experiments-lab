@@ -3,7 +3,7 @@ type Record = { total: number; confirmed: number; busted: number; weird: number;
 /** The index card of outcomes. Failures are listed as proudly as successes. */
 export function LabRecord({ record }: { record: Record }) {
   const rows: [string, number][] = [
-    ["experiments", record.total],
+    ["posts", record.total],
     ["confirmed", record.confirmed],
     ["busted", record.busted],
     ["still weird", record.weird],

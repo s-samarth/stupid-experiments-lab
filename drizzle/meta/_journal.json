@@ -8,6 +8,20 @@
       "when": 1790030922520,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790065932333,
+      "tag": "0001_drop_experiments",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790065937512,
+      "tag": "0002_post_verdict_question_post",
+      "breakpoints": true
     }
   ]
 }

@@ -51,7 +51,7 @@ export async function askQuestion(_prev: AskState, form: FormData): Promise<AskS
     status: "pending",
     ipHash,
   });
-  return { ok: true, message: "Got it. I read every one; the good ones become experiments." };
+  return { ok: true, message: "Got it. I read every one; the good ones go up on the board." };
 }
 
 function hashIp(ip: string): string {

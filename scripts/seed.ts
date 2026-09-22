@@ -7,9 +7,9 @@ config({ path: ".env.local" });
 
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
-import { closeDb, db, experiments, postReads, posts, questions } from "../src/lib/db";
+import { closeDb, db, postReads, posts, questions } from "../src/lib/db";
 import { renderPost } from "../src/lib/editor/render";
-import { EXPERIMENTS, POSTS, QUESTIONS } from "./seed-data";
+import { POSTS, QUESTIONS } from "./seed-data";
 
 const DAY = 86_400_000;
 const daysAgo = (n: number) => new Date(Date.now() - n * DAY);
@@ -21,31 +21,14 @@ async function main() {
     console.error("Refusing to run without --reset (this wipes every table). Never run against production.");
     process.exit(1);
   }
-  await db().execute(sql`TRUNCATE post_reads, share_events, questions, posts, experiments RESTART IDENTITY CASCADE`);
-
-  const idByNumber = new Map<number, number>();
-  for (const e of EXPERIMENTS) {
-    const [row] = await db()
-      .insert(experiments)
-      .values({
-        number: e.number, slug: e.slug, title: e.title, question: e.question, hypothesis: e.hypothesis,
-        measure: e.measure, killCriterion: e.killCriterion, stage: e.stage, status: e.status,
-        verdict: e.verdict, scribble: e.scribble, tags: e.tags,
-        startedOn: isoDay(daysAgo(e.startedDaysAgo)),
-        endedOn: e.endedDaysAgo ? isoDay(daysAgo(e.endedDaysAgo)) : null,
-        spawnedFromId: e.spawnedFrom ? idByNumber.get(e.spawnedFrom) : null,
-      })
-      .returning({ id: experiments.id });
-    idByNumber.set(e.number, row.id);
-  }
+  await db().execute(sql`TRUNCATE post_reads, share_events, questions, posts RESTART IDENTITY CASCADE`);
 
   for (const s of POSTS) {
     const rendered = renderPost(s.body);
     const [row] = await db()
       .insert(posts)
       .values({
-        slug: s.slug, title: s.title, subtitle: s.subtitle, kind: s.kind,
-        experimentId: s.experiment ? idByNumber.get(s.experiment) : null, stage: s.stage,
+        slug: s.slug, title: s.title, subtitle: s.subtitle, verdict: rendered.verdict,
         body: s.body, bodyHtml: rendered.html, readingMinutes: rendered.readingMinutes,
         tags: s.tags, status: "published", publishedAt: daysAgo(s.daysAgo),
       })
@@ -54,7 +37,7 @@ async function main() {
   }
 
   await db().insert(questions).values(QUESTIONS);
-  console.log(`Seeded ${EXPERIMENTS.length} experiments, ${POSTS.length} posts, ${QUESTIONS.length} questions.`);
+  console.log(`Seeded ${POSTS.length} posts, ${QUESTIONS.length} questions.`);
 }
 
 /** Fake reads spread over the days since publishing, capped for speed. */

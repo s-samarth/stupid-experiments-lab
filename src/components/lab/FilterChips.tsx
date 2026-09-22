@@ -3,7 +3,7 @@ import Link from "next/link";
 type Option = { value: string; label: string };
 
 type Props = {
-  /** Page path, e.g. "/experiments". */
+  /** Page path, e.g. "/writing". */
   basePath: string;
   /** Query-string key this row controls, e.g. "status". */
   param: string;

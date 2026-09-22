@@ -23,7 +23,11 @@
   margin-top: 1.8em;
 }
 .prose-lab h1 { font-size: 2rem; }
-.prose-lab h2 { font-size: 1.6rem; }
+.prose-lab h2 {
+  font-size: 1.6rem;
+  /* Leaves breathing room above a section when the contents rail jumps to it. */
+  scroll-margin-top: 1.5rem;
+}
 .prose-lab h3 { font-size: 1.3rem; }
 .prose-lab h4 {
   font-family: var(--font-mono);
@@ -143,3 +147,10 @@
 .prose-lab .hljs-literal { color: #9fc1f0; }
 .prose-lab .hljs-title,
 .prose-lab .hljs-function { color: #f5c98b; }
+
+/* Jumping between sections glides, unless the reader has asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.prose-lab) {
+    scroll-behavior: smooth;
+  }
+}

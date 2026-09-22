@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { LabRecord } from "@/components/lab/LabRecord";
+import { LoopExplainer } from "@/components/lab/LoopExplainer";
 import { Icon } from "@/components/site/Icon";
-import { LOOP_STAGES } from "@/lib/loop";
-import { getLabRecord } from "@/lib/queries/experiments";
-import { author, site } from "@/lib/site";
+import { getLabRecord } from "@/lib/queries/posts";
+import { author } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: author.name, description: author.bio[0] };
@@ -51,20 +51,10 @@ export default async function AboutPage() {
       </div>
 
       <section aria-labelledby="how" className="mt-14 border-t border-ink pt-2.5">
-        <h2 id="how" className="font-mono text-[12px]">How {site.name.toLowerCase()} work</h2>
-        <ol className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-3">
-          {LOOP_STAGES.map((s) => (
-            <li key={s.key} className="flex gap-3">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-ink font-mono text-[11px]">
-                {s.n}
-              </span>
-              <span>
-                <span className="block font-serif text-[18px]">{s.label}</span>
-                <span className="text-[14px] text-muted">{s.blurb}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
+        <h2 id="how" className="font-mono text-[12px]">How every post works</h2>
+        <div className="mt-5">
+          <LoopExplainer />
+        </div>
       </section>
 
       <section aria-labelledby="rules" className="mt-12 border-t border-ink pt-2.5">

@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import "katex/dist/katex.min.css";
-import { HypothesisCard } from "@/components/lab/HypothesisCard";
-import { LoopTracker } from "@/components/lab/LoopTracker";
 import { PostFooter } from "@/components/lab/PostFooter";
 import { PostHeader } from "@/components/lab/PostHeader";
 import { ReadingProgress } from "@/components/lab/ReadingProgress";
 import { ReadTracker } from "@/components/lab/ReadTracker";
-import { getExperiment } from "@/lib/queries/experiments";
-import { getLivePost, listExperimentEntries } from "@/lib/queries/posts";
+import { SectionRail } from "@/components/lab/SectionRail";
+import { listSections } from "@/lib/editor/render";
+import { getLivePost, getNeighbours } from "@/lib/queries/posts";
 import { site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -41,22 +40,18 @@ export default async function PostPage(props: PageProps<"/p/[slug]">) {
   if (!found) notFound();
   const { post, reads } = found;
 
-  const [context, entries] = post.experimentId
-    ? await Promise.all([getExperiment({ id: post.experimentId }), listExperimentEntries(post.experimentId)])
-    : [null, []];
-  const experiment = context?.experiment ?? null;
-  const index = entries.findIndex((e) => e.id === post.id);
-  const next = index >= 0 ? (entries[index + 1] ?? null) : null;
+  const { older, newer } = await getNeighbours(post.publishedAt ?? new Date());
+  const sections = listSections(post.bodyHtml);
 
   return (
     <>
       <ReadingProgress targetId={ARTICLE_ID} />
       <ReadTracker postId={post.id} articleId={ARTICLE_ID} />
-      <div className="mx-auto grid max-w-5xl gap-8 px-5 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[140px_minmax(0,680px)] lg:gap-12">
-        <aside className="hidden lg:block" aria-label="Where this sits in the loop">
-          {experiment && (
+      <div className="mx-auto grid max-w-5xl gap-8 px-5 pt-8 sm:px-8 sm:pt-12 lg:grid-cols-[160px_minmax(0,680px)] lg:gap-12">
+        <aside className="hidden lg:block">
+          {sections.length > 1 && (
             <div className="sticky top-10">
-              <LoopTracker current={experiment.stage} here={post.stage} />
+              <SectionRail sections={sections} />
             </div>
           )}
         </aside>
@@ -68,15 +63,7 @@ export default async function PostPage(props: PageProps<"/p/[slug]">) {
             readingMinutes={post.readingMinutes}
             reads={reads}
             tags={post.tags}
-            experimentNumber={experiment?.number}
-            entryIndex={index + 1}
-            entryTotal={entries.length}
           />
-          {experiment && post.kind === "log" && (
-            <div className="mb-8">
-              <HypothesisCard {...experiment} />
-            </div>
-          )}
           {/* bodyHtml was rendered from our own editor schema at save time (see lib/editor/render.ts). */}
           <div className="prose-lab" dangerouslySetInnerHTML={{ __html: post.bodyHtml }} />
           <PostFooter
@@ -85,10 +72,8 @@ export default async function PostPage(props: PageProps<"/p/[slug]">) {
             url={`${site.url}/p/${post.slug}`}
             title={post.title}
             reads={reads}
-            experiment={experiment}
-            parent={context?.parent ?? null}
-            next={next}
-            entryTotal={entries.length}
+            older={older}
+            newer={newer}
           />
         </article>
       </div>

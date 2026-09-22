@@ -4,13 +4,13 @@ import "katex/dist/katex.min.css";
 import "@/styles/editor.css";
 import { PostEditor } from "@/components/editor/PostEditor";
 import { PromptProvider } from "@/components/editor/PromptDialog";
-import { getPostForEdit, listExperimentOptions } from "@/lib/admin/queries";
+import { getPostForEdit } from "@/lib/admin/queries";
 
 export default async function EditPostPage(props: PageProps<"/admin/posts/[id]">) {
   const { id } = await props.params;
   const postId = Number(id);
   if (!Number.isInteger(postId)) notFound();
-  const [post, experiments] = await Promise.all([getPostForEdit(postId), listExperimentOptions()]);
+  const post = await getPostForEdit(postId);
   if (!post) notFound();
 
   return (
@@ -18,7 +18,6 @@ export default async function EditPostPage(props: PageProps<"/admin/posts/[id]">
       {/* key: a different post remounts the editor instead of reusing its state. */}
       <PostEditor
         key={post.id}
-        experiments={experiments}
         post={{
           id: post.id,
           title: post.title,
@@ -26,9 +25,6 @@ export default async function EditPostPage(props: PageProps<"/admin/posts/[id]">
           body: post.body as JSONContent,
           status: post.status,
           slug: post.slug,
-          kind: post.kind,
-          experimentId: post.experimentId,
-          stage: post.stage,
           tags: post.tags,
           seoTitle: post.seoTitle,
           seoDescription: post.seoDescription,

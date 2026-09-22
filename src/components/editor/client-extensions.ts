@@ -7,6 +7,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { Plugin } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { baseExtensions } from "@/lib/editor/extensions";
+import { promptForHeading } from "@/lib/loop";
 import { ButtonBlock, VerdictStamp } from "@/lib/editor/nodes/blocks";
 import { DataChart } from "@/lib/editor/nodes/data-chart";
 import { Embed } from "@/lib/editor/nodes/embed";
@@ -44,7 +45,16 @@ export function clientExtensions({ ask, notify }: Options): AnyExtension[] {
       },
     }),
     Placeholder.configure({
-      placeholder: ({ node }) => (node.type.name === "heading" ? "Heading" : "Start writing, or type / for blocks…"),
+      // Show hints in every empty block, not just the one with the cursor, so
+      // each template section shows its prompt at a glance.
+      showOnlyCurrent: false,
+      placeholder: ({ editor, node, pos, hasAnchor }) => {
+        if (node.type.name === "heading") return "Section heading";
+        // The block just before this one: a loop heading means "show its prompt".
+        const before = pos > 0 ? editor.state.doc.resolve(pos).nodeBefore : null;
+        const prompt = before?.type.name === "heading" ? promptForHeading(before.textContent) : null;
+        return prompt ?? (hasAnchor ? "Start writing, or type / for blocks…" : "");
+      },
     }),
     ImageDropPaste.configure({ notify }),
   ];

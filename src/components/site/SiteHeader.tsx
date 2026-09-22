@@ -3,7 +3,6 @@ import { site } from "@/lib/site";
 import { NavLink } from "./NavLink";
 
 const NAV = [
-  { href: "/experiments", label: "Experiments" },
   { href: "/writing", label: "Writing" },
   { href: "/questions", label: "Question box" },
   { href: "/stats", label: "Stats" },

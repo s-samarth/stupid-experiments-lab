@@ -25,7 +25,6 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             lab admin
           </Link>
           <Link href="/admin" className={link}>Posts</Link>
-          <Link href="/admin/experiments" className={link}>Experiments</Link>
           <Link href="/admin/questions" className={link}>
             Questions{pending > 0 && <span className="ml-1 rounded-full bg-amber px-1.5 font-mono text-[11px] text-ink">{pending}</span>}
           </Link>
