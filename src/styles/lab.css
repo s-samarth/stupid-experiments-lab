@@ -163,3 +163,30 @@
 .prose-lab .data-chart-track { height: 0.7em; background: var(--color-paper-deep); border-radius: 0 4px 4px 0; }
 .prose-lab .data-chart-fill { display: block; height: 100%; background: var(--color-chart); border-radius: 0 4px 4px 0; }
 .prose-lab .data-chart-value { font-family: var(--font-mono); font-size: 0.8rem; min-width: 3.5rem; text-align: right; }
+
+/* ── The journey drawing on the home page (components/lab/JourneyMap.tsx) ── */
+.journey svg { overflow: visible; }
+.journey .j-ink { fill: none; stroke: var(--color-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.journey .j-trail { fill: none; stroke: var(--color-line-strong); stroke-width: 2.2; stroke-dasharray: 1 7; stroke-linecap: round; }
+.journey .j-dot { fill: var(--color-ink); }
+.journey .j-fill-amber { fill: var(--color-amber-soft); }
+.journey .j-fill-card { fill: var(--color-card); }
+.journey .j-bulb { fill: var(--color-amber-soft); stroke: var(--color-amber); stroke-width: 2; }
+.journey .j-amber-fill { fill: var(--color-amber); }
+.journey .j-amber-stroke { fill: none; stroke: var(--color-amber); stroke-width: 2; stroke-linecap: round; }
+.journey .j-pen-stroke { fill: none; stroke: var(--color-pen); stroke-width: 2; stroke-linecap: round; }
+.journey .j-pen-fill { fill: var(--color-pen); }
+.journey .j-flask { fill: var(--color-pen-soft); stroke: var(--color-pen); stroke-width: 1.6; stroke-linejoin: round; }
+.journey .j-red-stroke { fill: none; stroke: var(--color-red); stroke-width: 1.3; }
+.journey .j-muted-stroke { fill: none; stroke: var(--color-muted); stroke-width: 1.1; }
+.journey .j-rock { fill: var(--color-paper-deep); }
+.journey .j-post { stroke: #8a7a58; stroke-width: 2.5; stroke-linecap: round; }
+.journey .j-title { font-family: var(--font-serif); font-size: 16px; font-weight: 500; fill: var(--color-ink); }
+.journey .j-blurb { font-family: var(--font-serif); font-size: 13px; fill: var(--color-muted); }
+.journey .j-mono { font-family: var(--font-mono); font-size: 11px; fill: var(--color-muted); }
+.journey .j-hand { font-family: var(--font-hand); }
+.journey .j-red { fill: var(--color-red); }
+.journey .j-pen { fill: var(--color-pen); }
+.journey .j-muted { fill: var(--color-muted); }
+.journey .j-amber-text { fill: var(--color-amber-deep); }
+.journey .j-ink-text { fill: var(--color-ink); }

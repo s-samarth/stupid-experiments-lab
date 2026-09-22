@@ -1,4 +1,4 @@
-import { LoopExplainer } from "@/components/lab/LoopExplainer";
+import { JourneyMap } from "@/components/lab/JourneyMap";
 import { PostRow } from "@/components/lab/PostRow";
 import { QuestionNote } from "@/components/lab/QuestionNote";
 import { SectionRule } from "@/components/lab/SectionRule";
@@ -21,24 +21,29 @@ export default async function HomePage() {
           Notebook Nº {site.notebookNumber} · {record.total} {record.total === 1 ? "post" : "posts"}
           {failedUsefully > 0 && `, ${failedUsefully} failed usefully`}
         </p>
-        <h1 className="max-w-[34rem] font-serif text-[38px] leading-[1.08] sm:text-[44px]">
-          I try things so I understand them. <em>Then I write down what broke.</em>
+        <h1 className="max-w-[34rem] font-serif text-[40px] leading-[1.05] sm:text-[48px]">
+          Dumb ideas, <em>actually tried.</em>
         </h1>
-        <p className="font-hand text-[22px] leading-none text-pen sm:absolute sm:top-16 sm:right-4 sm:max-w-40 sm:rotate-3 max-sm:mt-4">
-          most of these are stupid. that&apos;s the point.
+        <p className="mt-4 max-w-[34rem] font-serif text-[19px] leading-relaxed text-muted">
+          I don&apos;t have money. I have AI, free time and a steady supply of ideas that probably shouldn&apos;t be tested. So I
+          test them here, in public. Mine to think, mine to write, mine to break. No AI slop.
         </p>
+        <div className="font-hand leading-[1.05] max-sm:mt-6 max-sm:space-y-2 sm:absolute sm:top-14 sm:right-2 sm:w-52">
+          <p className="rotate-3 text-[22px] text-pen">one day I&apos;ll stop posting and you&apos;ll all know why.</p>
+          <p className="-rotate-2 text-[20px] text-red sm:mt-6">either I&apos;ll be arrested or I&apos;ll be rich.</p>
+        </div>
       </section>
 
-      <section aria-label="How I think" className="pb-12">
-        <SectionRule label="How I think" aside="every post follows these steps, top to bottom" />
-        <div className="pt-4">
-          <LoopExplainer />
+      <section aria-label="How every piece is written" className="pb-12">
+        <SectionRule label="How every piece is written" aside="one idea, nine stops, lots of ups and downs" />
+        <div className="pt-6">
+          <JourneyMap />
         </div>
       </section>
 
       <section className="grid gap-8 border-t border-ink pt-2.5 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <div>
-          <h2 className="pb-1 font-mono text-[12px]">Latest</h2>
+          <h2 className="pb-1 font-mono text-[12px]">What have I done so far?</h2>
           {latest.length === 0 ? (
             <p className="py-4 font-serif text-muted italic">Nothing published yet. The lab is still setting up its beakers.</p>
           ) : (
