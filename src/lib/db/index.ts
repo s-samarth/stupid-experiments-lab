@@ -12,8 +12,19 @@ function createDb() {
   if (!url) {
     throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local and add your Supabase URL.");
   }
-  // The transaction pooler doesn't support prepared statements, so turn them off.
-  const client = postgres(url, { prepare: false, max: 5 });
+  // `max_pipeline` is a real postgres.js option that its type definitions omit.
+  const options: postgres.Options<Record<string, never>> & { max_pipeline: number } = {
+    // The transaction pooler doesn't support prepared statements, so turn them off.
+    prepare: false,
+    // Never queue a second query on a busy connection. Without prepared statements,
+    // postgres.js sends parameterised queries in two steps, and if another query
+    // is pipelined next to one, the pooler can hand the connection to a different
+    // backend between the steps: both sides then wait forever (the /stats hang).
+    max_pipeline: 0,
+    max: 5,
+    connect_timeout: 10,
+  };
+  const client = postgres(url, options);
   return { client, db: drizzle(client, { schema }) };
 }
 

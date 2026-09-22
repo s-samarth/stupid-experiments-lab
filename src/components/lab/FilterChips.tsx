@@ -13,6 +13,11 @@ type Props = {
   label: string;
   /** Label for the chip that clears this filter. */
   allLabel?: string;
+  /**
+   * For filters that always have a value (like a date range): the option used
+   * when the URL has none. It's shown in its natural place instead of an "all" chip.
+   */
+  defaultValue?: string;
 };
 
 /**
@@ -20,12 +25,13 @@ type Props = {
  * query param changed: the URL holds the filter state, so it works without JS
  * and filtered views are shareable.
  */
-export function FilterChips({ basePath, param, options, current, label, allLabel = "all" }: Props) {
-  const active = current[param];
+export function FilterChips({ basePath, param, options, current, label, allLabel = "all", defaultValue }: Props) {
+  const active = current[param] ?? defaultValue;
   const hrefFor = (value?: string) => {
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(current)) if (v && k !== param) params.set(k, v);
-    if (value) params.set(param, value);
+    // The default option gets the clean URL, so there's only one address for it.
+    if (value && value !== defaultValue) params.set(param, value);
     const qs = params.toString();
     return qs ? `${basePath}?${qs}` : basePath;
   };
@@ -35,9 +41,11 @@ export function FilterChips({ basePath, param, options, current, label, allLabel
   return (
     <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={label}>
       <span className="mr-1 text-[12px] text-muted">{label}</span>
-      <Link href={hrefFor()} className={chip(!active)} aria-current={!active ? "true" : undefined}>
-        {allLabel}
-      </Link>
+      {defaultValue === undefined && (
+        <Link href={hrefFor()} className={chip(!active)} aria-current={!active ? "true" : undefined}>
+          {allLabel}
+        </Link>
+      )}
       {options.map((o) => (
         <Link key={o.value} href={hrefFor(o.value)} className={chip(active === o.value)} aria-current={active === o.value ? "true" : undefined}>
           {o.label}

@@ -4,6 +4,7 @@ import { FilterChips, param } from "@/components/lab/FilterChips";
 import { LabRecord } from "@/components/lab/LabRecord";
 import { Breakdown } from "@/components/stats/Breakdown";
 import { DailyChart } from "@/components/stats/DailyChart";
+import { HowWeCount } from "@/components/stats/HowWeCount";
 import { StatTiles } from "@/components/stats/StatTiles";
 import { formatCount } from "@/lib/format";
 import { getLabRecord } from "@/lib/queries/posts";
@@ -21,7 +22,7 @@ const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 export default async function StatsPage(props: PageProps<"/stats">) {
   const sp = await props.searchParams;
   const rangeKey = (param(sp.range) ?? "30") as RangeKey;
-  const days = rangeKey in RANGES ? RANGES[rangeKey] : 30;
+  const days = Object.hasOwn(RANGES, rangeKey) ? RANGES[rangeKey] : 30;
   const postSlug = param(sp.post);
   const post = postSlug ? await findPostForStats(postSlug) : null;
   const scope = { days, postId: post?.id };
@@ -54,10 +55,11 @@ export default async function StatsPage(props: PageProps<"/stats">) {
           basePath="/stats"
           param="range"
           label="range"
-          allLabel="30 days"
+          defaultValue="30"
           current={current}
           options={[
             { value: "7", label: "7 days" },
+            { value: "30", label: "30 days" },
             { value: "90", label: "90 days" },
             { value: "all", label: "all time" },
           ]}
@@ -91,6 +93,10 @@ export default async function StatsPage(props: PageProps<"/stats">) {
             <LabRecord record={record} />
           </div>
         )}
+      </div>
+
+      <div className="mt-14">
+        <HowWeCount />
       </div>
     </div>
   );

@@ -45,9 +45,9 @@ export async function getTotals(scope: Scope) {
   return { ...reads, shares: shares.shares };
 }
 
-/** Reads per day, including zero days, oldest first. */
+/** Reads per day, including zero days, oldest first. "All time" starts at the first read (max a year). */
 export async function getDailyReads(scope: Scope): Promise<{ day: string; reads: number }[]> {
-  const days = scope.days ?? 90;
+  const days = scope.days ?? (await daysSinceFirstRead(scope.postId));
   const postFilter = scope.postId ? sql`AND ${postReads.postId} = ${scope.postId}` : sql``;
   const rows = await db().execute<{ day: string; reads: number }>(sql`
     SELECT to_char(d::date, 'YYYY-MM-DD') AS day, count(${postReads.id})::int AS reads
@@ -55,6 +55,14 @@ export async function getDailyReads(scope: Scope): Promise<{ day: string; reads:
     LEFT JOIN ${postReads} ON ${postReads.day} = d::date ${postFilter}
     GROUP BY d ORDER BY d`);
   return [...rows];
+}
+
+async function daysSinceFirstRead(postId?: number): Promise<number> {
+  const [row] = await db()
+    .select({ n: sql<number | null>`(current_date - min(${postReads.day}) + 1)::int` })
+    .from(postReads)
+    .where(postId ? eq(postReads.postId, postId) : undefined);
+  return Math.min(365, Math.max(30, row?.n ?? 30));
 }
 
 export function getTopPosts(scope: Scope, limit = 8) {
