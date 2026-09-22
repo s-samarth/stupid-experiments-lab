@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Caveat, IBM_Plex_Mono, Inter, Newsreader } from "next/font/google";
 import { author, site } from "@/lib/site";
 import "./globals.css";
@@ -33,6 +33,9 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
   alternates: { types: { "application/rss+xml": "/rss.xml" } },
 };
+
+/** Same paper colour as samarthsaraswat.com, for the phone browser bar. */
+export const viewport: Viewport = { themeColor: "#F6F3EA" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   const fontVars = [newsreader, inter, plexMono, caveat].map((f) => f.variable).join(" ");
