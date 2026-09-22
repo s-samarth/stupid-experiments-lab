@@ -25,7 +25,7 @@ export default async function HomePage() {
           Dumb ideas, <em>actually tried.</em>
         </h1>
         <p className="mt-4 max-w-[34rem] font-serif text-[19px] leading-relaxed text-muted">
-          I don&apos;t have money. I have AI, free time and a steady supply of ideas that probably shouldn&apos;t be tested. So I
+          I don&apos;t have money but I have AI, free time and a steady supply of ideas that probably shouldn&apos;t be tested. So I
           test them here, in public. Mine to think, mine to write, mine to break. No AI slop.
         </p>
         <div className="font-hand leading-[1.05] max-sm:mt-6 max-sm:space-y-2 sm:absolute sm:top-14 sm:right-2 sm:w-52">
