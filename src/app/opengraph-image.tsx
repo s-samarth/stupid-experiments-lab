@@ -6,5 +6,5 @@ export const contentType = "image/png";
 export const alt = site.fullName;
 
 export default function Image() {
-  return renderCard({ kicker: "lab", title: "I try things so I understand them.", subtitle: "Then I write down what broke." });
+  return renderCard({ kicker: "lab", title: "Dumb ideas, actually tried.", subtitle: "Tested in public. Written up honestly." });
 }

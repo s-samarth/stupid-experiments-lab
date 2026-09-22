@@ -3,9 +3,23 @@ import { FilterChips, param } from "@/components/lab/FilterChips";
 import { PostRow } from "@/components/lab/PostRow";
 import { VERDICTS } from "@/lib/loop";
 import { listAllTags, listLivePosts } from "@/lib/queries/posts";
+import { pageAlternates } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Writing" };
+
+/**
+ * Filtered views all point at /writing as the one canonical page, and search
+ * results aren't indexed at all (they'd be endless near-duplicates).
+ */
+export async function generateMetadata(props: PageProps<"/writing">): Promise<Metadata> {
+  const { q } = await props.searchParams;
+  return {
+    title: "Writing",
+    description: "Every experiment so far: the question, the test, and whether it was confirmed, busted, weird or inconclusive.",
+    alternates: pageAlternates("/writing"),
+    ...(q ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 export default async function WritingPage(props: PageProps<"/writing">) {
   const sp = await props.searchParams;

@@ -1,13 +1,23 @@
+import type { Metadata } from "next";
 import { JourneyMap } from "@/components/lab/JourneyMap";
 import { PostRow } from "@/components/lab/PostRow";
 import { QuestionNote } from "@/components/lab/QuestionNote";
 import { SectionRule } from "@/components/lab/SectionRule";
 import { getLabRecord, listLivePosts } from "@/lib/queries/posts";
 import { listOpenQuestions } from "@/lib/queries/questions";
-import { site } from "@/lib/site";
+import { JsonLd } from "@/components/site/JsonLd";
+import { pageAlternates } from "@/lib/seo/metadata";
+import { graph, personSchema, websiteSchema } from "@/lib/seo/schema";
+import { author, site } from "@/lib/site";
 
 // Render on every request so read counts stay current.
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  // `absolute` skips the "· Stupid Experiments" suffix the layout adds to other pages.
+  title: { absolute: `${site.name}: dumb ideas, actually tried · ${author.name}` },
+  alternates: pageAlternates("/"),
+};
 
 export default async function HomePage() {
   // Independent queries run in parallel instead of one after another.
@@ -16,6 +26,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-5 sm:px-8">
+      <JsonLd data={graph(websiteSchema(), personSchema())} />
       <section className="relative pt-10 pb-10 sm:pt-14">
         <p className="mb-3 font-mono text-[12px] text-muted">
           Notebook Nº {site.notebookNumber} · {record.total} {record.total === 1 ? "post" : "posts"}

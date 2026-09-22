@@ -9,11 +9,13 @@
  */
 import { and, eq, lt, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/auth";
 import { db, posts } from "@/lib/db";
 import { renderPost } from "@/lib/editor/render";
+import { pingIndexNow } from "@/lib/seo/indexnow";
 import { draftSlug, isDraftSlug, slugify } from "@/lib/slug";
 
 const optionalText = z.string().trim().max(300).nullable().transform((v) => v || null);
@@ -97,6 +99,9 @@ export async function publishPost(id: number, when: string | null): Promise<Save
     .set({ slug, publishedAt: at, status: at.getTime() > Date.now() ? "scheduled" : "published" })
     .where(eq(posts.id, id));
   revalidatePublic(slug);
+  // Tell search engines now (after the response, so publishing isn't slowed down).
+  // A scheduled post isn't live yet, so it's left to the sitemap.
+  if (at.getTime() <= Date.now()) after(() => pingIndexNow([`/p/${slug}`, "/writing"]));
   return { ok: true, slug, savedAt: new Date().toISOString() };
 }
 
@@ -105,6 +110,7 @@ export async function unpublishPost(id: number): Promise<void> {
   await requireOwner();
   const [row] = await db().update(posts).set({ status: "draft" }).where(eq(posts.id, id)).returning({ slug: posts.slug });
   if (row) revalidatePublic(row.slug);
+  if (row) after(() => pingIndexNow([`/p/${row.slug}`]));
 }
 
 /** Deletes a post for good (its read stats go with it). Returns to the posts list. */

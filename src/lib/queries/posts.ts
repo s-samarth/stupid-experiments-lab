@@ -21,6 +21,7 @@ const listColumns = {
   tags: posts.tags,
   readingMinutes: posts.readingMinutes,
   publishedAt: posts.publishedAt,
+  updatedAt: posts.updatedAt,
   reads: readsCount,
   verdict: posts.verdict,
 };
@@ -53,6 +54,16 @@ export async function getLivePost(slug: string) {
     .where(and(eq(posts.slug, slug), isLive))
     .limit(1);
   return rows[0] ?? null;
+}
+
+/** Live posts with their full documents, newest first (for the AI-readable copies). */
+export async function listLivePostDocs(limit = 200) {
+  return db()
+    .select({ slug: posts.slug, title: posts.title, subtitle: posts.subtitle, body: posts.body, tags: posts.tags, verdict: posts.verdict, publishedAt: posts.publishedAt, updatedAt: posts.updatedAt })
+    .from(posts)
+    .where(isLive)
+    .orderBy(desc(posts.publishedAt))
+    .limit(limit);
 }
 
 export async function listAllTags() {

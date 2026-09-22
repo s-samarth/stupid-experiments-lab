@@ -11,7 +11,7 @@ const cdata = (s: string) => `<![CDATA[${s.replace(/]]>/g, "]]]]><![CDATA[>")}]]
 
 export async function GET() {
   const rows = await db()
-    .select({ slug: posts.slug, title: posts.title, subtitle: posts.subtitle, html: posts.bodyHtml, publishedAt: posts.publishedAt })
+    .select({ slug: posts.slug, title: posts.title, subtitle: posts.subtitle, html: posts.bodyHtml, tags: posts.tags, publishedAt: posts.publishedAt })
     .from(posts)
     .where(isLive)
     .orderBy(desc(posts.publishedAt))
@@ -25,6 +25,8 @@ export async function GET() {
   <link>${url}</link>
   <guid isPermaLink="true">${url}</guid>
   <pubDate>${p.publishedAt?.toUTCString() ?? ""}</pubDate>
+  <dc:creator>${escape(author.name)}</dc:creator>
+  ${p.tags.map((t) => `<category>${escape(t)}</category>`).join("")}
   ${p.subtitle ? `<description>${escape(p.subtitle)}</description>` : ""}
   <content:encoded>${cdata(p.html)}</content:encoded>
 </item>`;
@@ -32,12 +34,13 @@ export async function GET() {
     .join("\n");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
 <channel>
   <title>${escape(site.fullName)}</title>
   <link>${site.url}</link>
   <description>${escape(site.tagline)}</description>
-  <managingEditor>${escape(author.name)}</managingEditor>
+  <language>en</language>
+  <lastBuildDate>${(rows[0]?.publishedAt ?? new Date()).toUTCString()}</lastBuildDate>
   <atom:link href="${site.url}/rss.xml" rel="self" type="application/rss+xml"/>
 ${items}
 </channel>

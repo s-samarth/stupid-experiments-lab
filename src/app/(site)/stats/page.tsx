@@ -7,6 +7,7 @@ import { DailyChart } from "@/components/stats/DailyChart";
 import { HowWeCount } from "@/components/stats/HowWeCount";
 import { StatTiles } from "@/components/stats/StatTiles";
 import { formatCount } from "@/lib/format";
+import { pageAlternates } from "@/lib/seo/metadata";
 import { getLabRecord } from "@/lib/queries/posts";
 import { RANGES, findPostForStats, getBreakdown, getDailyReads, getTopPosts, getTotals, type RangeKey } from "@/lib/queries/stats";
 
@@ -14,6 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Open lab stats",
   description: "Everything this lab counts, in public. Aggregates only: no cookies, no personal data.",
+  alternates: pageAlternates("/stats"),
 };
 
 const REFERRER_LABEL: Record<string, string> = { whatsapp: "WhatsApp", "linkedin.com": "LinkedIn", "x.com": "X" };

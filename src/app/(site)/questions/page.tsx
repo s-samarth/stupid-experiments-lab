@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listPublicQuestions } from "@/lib/queries/questions";
+import { pageAlternates } from "@/lib/seo/metadata";
 import { AskForm } from "./AskForm";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Question box",
   description: "Questions waiting to be tested. Suggest one.",
+  alternates: pageAlternates("/questions"),
 };
 
 const TILTS = ["rotate-1", "-rotate-1", "rotate-[0.4deg]", "-rotate-[0.6deg]"];

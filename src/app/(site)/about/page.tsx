@@ -3,10 +3,13 @@ import { LabRecord } from "@/components/lab/LabRecord";
 import { LoopExplainer } from "@/components/lab/LoopExplainer";
 import { Icon } from "@/components/site/Icon";
 import { getLabRecord } from "@/lib/queries/posts";
-import { author } from "@/lib/site";
+import { JsonLd } from "@/components/site/JsonLd";
+import { pageAlternates } from "@/lib/seo/metadata";
+import { graph, personSchema } from "@/lib/seo/schema";
+import { author, site } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: author.name, description: author.bio[0] };
+export const metadata: Metadata = { title: `About ${author.name}`, description: author.bio[0], alternates: pageAlternates("/about") };
 
 const RULES = [
   "Curiosity should lead to action.",
@@ -21,6 +24,7 @@ export default async function AboutPage() {
   const record = await getLabRecord();
   return (
     <div className="mx-auto max-w-4xl px-5 pt-10 sm:px-8">
+      <JsonLd data={graph({ "@type": "ProfilePage", url: `${site.url}/about`, mainEntity: personSchema() })} />
       <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_220px]">
         <div>
           <p className="font-mono text-[12px] text-muted">the person running this lab</p>

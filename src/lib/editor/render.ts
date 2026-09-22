@@ -40,7 +40,7 @@ export function listSections(html: string): { id: string; title: string }[] {
  * Drops empty paragraphs, then any section heading left with nothing under it,
  * so a template step the author skipped doesn't show up as a bare heading.
  */
-function pruneEmptySections(doc: JSONContent): JSONContent {
+export function pruneEmptySections(doc: JSONContent): JSONContent {
   const blocks = (doc.content ?? []).filter((n) => !(n.type === "paragraph" && !n.content?.length));
   const kept = blocks.filter((n, i) => {
     if (n.type !== "heading" || n.attrs?.level !== 2) return true;
@@ -113,7 +113,7 @@ function readLatex(attrs: string): string {
   return match ? unescapeHtml(match[1]) : "";
 }
 
-function countWords(node: JSONContent): number {
+export function countWords(node: JSONContent): number {
   const own = node.text ? node.text.split(/\s+/).filter(Boolean).length : 0;
   return own + (node.content ?? []).reduce((sum, child) => sum + countWords(child), 0);
 }

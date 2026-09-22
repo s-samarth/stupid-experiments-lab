@@ -65,10 +65,21 @@ export function SettingsPanel({ settings: s, onChange, title, notify }: Props) {
       </div>
 
       <h3 className="mt-6 text-[13px] font-medium">Search and social</h3>
-      <label className={label} htmlFor="set-seo-title">Title for search and shares</label>
+      <label className={label} htmlFor="set-seo-title">
+        Title for search and shares <Count text={s.seoTitle || title} max={60} />
+      </label>
       <input id="set-seo-title" className={field} value={s.seoTitle ?? ""} placeholder={title} onChange={(e) => onChange({ seoTitle: e.target.value || null })} />
-      <label className={label} htmlFor="set-seo-desc">Description</label>
-      <textarea id="set-seo-desc" rows={3} className={field} value={s.seoDescription ?? ""} placeholder="Defaults to the subtitle" onChange={(e) => onChange({ seoDescription: e.target.value || null })} />
+      <label className={label} htmlFor="set-seo-desc">
+        Description <Count text={s.seoDescription ?? ""} max={155} />
+      </label>
+      <textarea
+        id="set-seo-desc"
+        rows={3}
+        className={field}
+        value={s.seoDescription ?? ""}
+        placeholder="Defaults to the subtitle, then the opening lines. Say what you tested and what happened: this is what search and AI answers quote."
+        onChange={(e) => onChange({ seoDescription: e.target.value || null })}
+      />
       <p className={label}>Share image (shown on WhatsApp, LinkedIn, X)</p>
       {s.socialImage ? (
         <div>
@@ -86,4 +97,10 @@ export function SettingsPanel({ settings: s, onChange, title, notify }: Props) {
       )}
     </aside>
   );
+}
+
+/** Characters used against what Google shows before cutting off (turns red past it). */
+function Count({ text, max }: { text: string; max: number }) {
+  if (!text) return null;
+  return <span className={`float-right font-mono ${text.length > max ? "text-red" : "text-muted"}`}>{text.length}/{max}</span>;
 }

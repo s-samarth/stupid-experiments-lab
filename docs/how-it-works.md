@@ -36,6 +36,7 @@ fragmented and the reading non-linear. One post = one loop is simpler to write a
 | `/stats` | Open stats: reads, read depth, shares, referrers, countries. Explains how it counts |
 | `/about` | Bio, the loop, house rules |
 | `/rss.xml`, `/sitemap.xml` | Feed with full text; sitemap for search engines |
+| `/llms.txt`, `/llms-full.txt`, `/p/<slug>.md` | The site as Markdown, for AI agents |
 
 ## Admin flows (only me, at `/admin`)
 
@@ -120,6 +121,47 @@ Explained for readers at the bottom of `/stats`. In short: one read per person p
 day; people are told apart by a salted daily hash of IP + browser (the IP is never stored,
 and the hash changes daily); scroll depth at 25/50/75/100%; referrer and country; bots, link
 previews and my own signed-in visits are excluded. Code: `src/lib/analytics/`, `src/app/api/track`.
+
+## How people and AI find posts (SEO, AEO, GEO)
+
+Everything below happens automatically for every post; nothing to do per post.
+
+| What | Where | Who it's for |
+|---|---|---|
+| Title, description, canonical URL, Open Graph and X cards, `article:*` dates and tags | `generateMetadata` in each page | Google, Bing, link previews |
+| Description fallback: search description → subtitle → first 155 characters of the post | `src/lib/seo/markdown.ts` (`docExcerpt`) | Search snippets, AI answers |
+| Structured data (JSON-LD): `BlogPosting` + breadcrumbs on posts, `WebSite` + `Person` on the home page, `ProfilePage` on about | `src/lib/seo/schema.ts` | Rich results; lets AI engines attribute a post to me |
+| Sitemap with last-modified dates | `/sitemap.xml` | All crawlers |
+| **IndexNow** ping when a post is published or unpublished | `src/lib/seo/indexnow.ts`, key file in `public/` | Bing (which feeds ChatGPT search and Copilot), Yandex |
+| `/llms.txt` (map), `/llms-full.txt` (every post), `/p/<slug>.md` (one post as Markdown) | `src/lib/seo/llms.ts` | AI agents and LLM crawlers |
+| RSS with full text, tags and author | `/rss.xml` | Feed readers, aggregators |
+| `robots.txt` allows everyone, AI crawlers named explicitly; admin and API blocked | `src/app/robots.ts` | All crawlers |
+
+*Why the Markdown copies:* agents read plain text far more reliably than a styled page.
+The `.md` copy sends a `Link: rel=canonical` header back to the real post, so Google never
+treats it as duplicate content. Search result pages (`/writing?q=`) are `noindex` for the same reason.
+
+*Why the share card is a route (`/p/<slug>/card`) and not an `opengraph-image` file:* Next
+lets a file-based image override `generateMetadata`, which silently ignored uploaded share images.
+
+### One-time setup (done by me, outside the code)
+
+1. **Google Search Console:** add `lab.samarthsaraswat.com` as a *Domain* property (verify with a
+   DNS TXT record), then submit `https://lab.samarthsaraswat.com/sitemap.xml`.
+2. **Bing Webmaster Tools:** "Import from Google Search Console". Bing powers ChatGPT search and Copilot.
+3. **Vercel → Firewall:** keep the "AI bots" managed rule *off*, or it blocks the crawlers the site invites.
+
+### Writing so a post gets found and quoted
+
+- **Title = the question, in the words someone would search.** "Can a ₹8,000 phone run an LLM offline?"
+  beats "Pocket brains".
+- **Subtitle = the answer in one sentence.** It becomes the description, and AI answers
+  quote the first clear answer they find.
+- **Say the verdict early and plainly** (the stamp does this), with the actual numbers.
+- **Name things specifically:** models, tools, versions, prices, dates. That's what people search for.
+- **Alt text on every image and chart**, and 2–4 tags per post.
+- **Link to earlier posts** where one builds on another, and to your sources in Research.
+- Leave the search title/description in Settings empty unless the counter goes red.
 
 ## Architecture, briefly
 

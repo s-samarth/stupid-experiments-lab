@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Caveat, IBM_Plex_Mono, Inter, Newsreader } from "next/font/google";
-import { site } from "@/lib/site";
+import { author, site } from "@/lib/site";
 import "./globals.css";
 
 // next/font self-hosts these at build time: no request to Google from readers,
@@ -23,7 +23,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: { default: site.fullName, template: `%s · ${site.name}` },
   description: site.tagline,
-  openGraph: { siteName: site.fullName, type: "website" },
+  applicationName: site.name,
+  authors: [{ name: author.name, url: "/about" }],
+  creator: author.name,
+  publisher: author.name,
+  // Lets Google show large image previews and full-length snippets (and so AI Overviews can quote).
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  openGraph: { siteName: site.fullName, type: "website", locale: "en_IN" },
   twitter: { card: "summary_large_image" },
   alternates: { types: { "application/rss+xml": "/rss.xml" } },
 };
