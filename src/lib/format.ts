@@ -22,13 +22,6 @@ export function formatCount(n: number): string {
   return countFmt.format(n);
 }
 
-/** Days since a date, counting the start day as day 1. */
-export function dayNumber(since: string | Date | null): number | null {
-  if (!since) return null;
-  const ms = Date.now() - new Date(since).getTime();
-  return Math.max(1, Math.floor(ms / 86_400_000) + 1);
-}
-
 const relativeFmt = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
 /** "just now", "5 minutes ago", "yesterday", then a date after a week. */

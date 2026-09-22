@@ -18,7 +18,7 @@ written top to bottom, so a reader can follow it straight through:
 8. **Reflect**: what this changes in how I think.
 9. **Next question**: which starts the loop again.
 
-The list lives in one place, `src/lib/loop.ts`. The home page explainer, the about page,
+The list lives in one place, `src/lib/loop.ts`. The home page drawing, the about page,
 the new-post template and the editor's section prompts all read from it.
 
 **Why one linear template instead of "experiments" holding many posts:** the first version
@@ -29,7 +29,7 @@ fragmented and the reading non-linear. One post = one loop is simpler to write a
 
 | Page | What's there |
 |---|---|
-| `/` | The loop explained as plain blocks (deliberately not clickable), latest posts, question box note |
+| `/` | Hero, the nine steps drawn as a stick man's trail of ups and downs (an illustration, not links), "What have I done so far?" post list, question box note |
 | `/p/<slug>` | The post. Left rail lists its sections and highlights the one you're reading. Share buttons, read count, link to the next post |
 | `/writing` | Every post, searchable, filterable by tag and by how it ended (verdict) |
 | `/questions` | Ask a question; see the public board and questions that became posts |
@@ -142,7 +142,15 @@ previews and my own signed-in visits are excluded. Code: `src/lib/analytics/`, `
   both sides waited forever. The stats page runs seven queries at once, so it froze. Fix:
   `max_pipeline: 0` in `src/lib/db/index.ts` (one query per connection at a time).
 - **Local dev uses the production database.** `.env.local` points at the live Supabase
-  project, so anything you do on `localhost` is real. Never run `npm run db:seed` there.
+  project, so anything you do on `localhost` is real.
+
+## Checks and tests
+
+`npm run check` runs the typecheck, the linter and the unit tests. Run it before committing;
+GitHub runs the same three on every push (`.github/workflows/check.yml`).
+Tests sit next to the code they cover (`*.test.ts`) and use Node's built-in test runner:
+rendering and empty-section pruning, the template, verdicts, embeds and link safety,
+referrer and bot detection, and formatting. They never touch the database.
 
 ## Testing the admin locally
 

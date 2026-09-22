@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "check": "npm run typecheck && npm run lint && npm run test",
     "typecheck": "next typegen && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts",
     "db:studio": "drizzle-kit studio",
     "storage:setup": "tsx scripts/setup-storage.ts"
   },

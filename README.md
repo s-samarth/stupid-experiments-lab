@@ -28,11 +28,10 @@ cp .env.example .env.local   # fill in the values (comments explain each)
 npm install
 npm run db:migrate           # create tables
 npm run storage:setup        # create the public image bucket
-npm run db:seed -- --reset   # optional: sample data for local development only
 npm run dev
 ```
 
-Useful scripts: `npm run typecheck`, `npm run lint`, `npm run db:generate` (after schema changes),
+Useful scripts: `npm run check` (typecheck, lint and tests; run it before every commit), `npm test`, `npm run db:generate` (after schema changes),
 `npm run db:studio`.
 
 ## Deploying (Vercel)
@@ -44,4 +43,4 @@ Useful scripts: `npm run typecheck`, `npm run lint`, `npm run db:generate` (afte
 4. The GitHub OAuth app must list `https://<domain>/api/auth/callback/github` as a redirect URI.
 5. `vercel.json` schedules a daily keep-alive so the free Supabase project never pauses.
 
-Never seed production: `db:seed --reset` wipes every table.
+`.env.local` points at the live database, so anything you do locally is real.
