@@ -15,6 +15,8 @@ type Props = {
   /** Saves any pending changes now; resolves with an error message or null. */
   flush: () => Promise<string | null>;
   wordCount: number;
+  /** The post's id right now (it appears mid-save for a brand-new post). */
+  currentId: () => number | null;
   onToggleSettings: () => void;
   notify: (message: string) => void;
 };
@@ -23,7 +25,7 @@ const STATUS_TEXT: Record<SaveStatus, string> = { saved: "Saved", unsaved: "Unsa
 const STATUS_CHIP = { draft: "bg-paper-deep text-muted", scheduled: "bg-pen-soft text-pen", published: "bg-[#e3f1ec] text-green" } as const;
 const ghost = "rounded-note border border-line px-3 py-1.5 text-[13px] hover:border-ink aria-disabled:pointer-events-none aria-disabled:opacity-40";
 
-export function EditorTopBar({ postId, status, slug, saveStatus, saveError, flush, wordCount, onToggleSettings, notify }: Props) {
+export function EditorTopBar({ postId, status, slug, saveStatus, saveError, flush, wordCount, currentId, onToggleSettings, notify }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [when, setWhen] = useState("");
   // useTransition gives a pending flag while a server action runs.
@@ -47,10 +49,23 @@ export function EditorTopBar({ postId, status, slug, saveStatus, saveError, flus
     });
 
   const remove = () => {
-    if (postId === null) return router.push("/admin");
-    const what = live ? "This takes it off the site and deletes it and its read stats" : "Delete this draft";
-    if (confirm(`${what}. This can't be undone. Continue?`)) startTransition(() => deletePost(postId));
+    const id = currentId();
+    if (id === null) {
+      // Never saved: nothing to delete, just leave (after a check if you typed something).
+      if (saveStatus === "saved" || confirm("Discard what you've written? It hasn't been saved.")) router.push("/admin");
+      return;
+    }
+    const what = live ? "This takes it off the site and deletes it and its read stats" : "Discard this draft";
+    if (confirm(`${what}. This can't be undone. Continue?`)) startTransition(() => deletePost(id));
   };
+
+  /** Saves right now instead of waiting for autosave, and says so. */
+  const saveDraft = () =>
+    startTransition(async () => {
+      const err = await flush();
+      if (err) return notify(`Couldn't save: ${err}`);
+      notify(currentId() === null ? "Nothing to save yet. Write something first." : "Draft saved");
+    });
 
   const saveText = !saved && saveStatus === "saved" ? "Empty posts aren't saved. Start writing." : `${STATUS_TEXT[saveStatus]}${saveError ? `: ${saveError}` : ""}`;
 
@@ -65,6 +80,16 @@ export function EditorTopBar({ postId, status, slug, saveStatus, saveError, flus
         <span className="hidden font-mono text-[11px] text-muted sm:inline">· {wordCount} words</span>
       </div>
       <div className="relative flex items-center gap-2">
+        {!live && (
+          <>
+            <button type="button" onClick={remove} disabled={pending} className={`${ghost} text-red`}>
+              Discard draft
+            </button>
+            <button type="button" onClick={saveDraft} disabled={pending} className={ghost}>
+              {pending ? "Saving…" : "Save draft"}
+            </button>
+          </>
+        )}
         <Link
           href={saved ? (live ? `/p/${slug}` : `/admin/posts/${postId}/preview`) : "#"}
           target="_blank"
@@ -105,9 +130,11 @@ export function EditorTopBar({ postId, status, slug, saveStatus, saveError, flus
                   Unpublish (back to drafts)
                 </button>
               ) : <span />}
-              <button type="button" onClick={remove} className="text-red">
-                {saved ? "Delete" : "Discard"}
-              </button>
+              {live && (
+                <button type="button" onClick={remove} className="text-red">
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         )}

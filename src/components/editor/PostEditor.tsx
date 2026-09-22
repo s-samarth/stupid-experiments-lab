@@ -78,6 +78,7 @@ export function PostEditor({ post }: { post: EditablePost }) {
         saveStatus={saveStatus}
         saveError={error}
         flush={flush}
+        currentId={() => idRef.current}
         wordCount={editor ? countWords(editor.state.doc) : 0}
         onToggleSettings={() => setShowSettings((s) => !s)}
         notify={notify}
