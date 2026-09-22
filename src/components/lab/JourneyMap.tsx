@@ -30,22 +30,36 @@ const NOTES: Record<string, { text: string; className: string }> = {
 };
 
 type Anchor = "start" | "middle" | "end";
-/** Wide layout: where each man stands, and where his label sits (clear of the trail). */
+/**
+ * Wide layout: one row, left to right. Where each man stands, and where his
+ * label sits: above him on a hilltop, below him in a valley, so the trail
+ * never runs through the text.
+ */
 const WIDE: Record<string, { at: [number, number]; label: [number, number, Anchor] }> = {
-  question: { at: [70, 300], label: [70, 326, "middle"] },
-  clarify: { at: [195, 240], label: [195, 140, "middle"] },
-  research: { at: [320, 190], label: [320, 90, "middle"] },
-  hypothesis: { at: [450, 150], label: [478, 112, "start"] },
-  experiment: { at: [590, 230], label: [578, 256, "end"] },
-  log: { at: [580, 540], label: [580, 566, "middle"] },
-  findings: { at: [432, 470], label: [440, 370, "middle"] },
-  reflect: { at: [310, 390], label: [310, 280, "middle"] },
-  next: { at: [178, 450], label: [180, 476, "middle"] },
+  question: { at: [55, 235], label: [20, 259, "start"] },
+  clarify: { at: [159, 165], label: [159, 70, "middle"] },
+  research: { at: [263, 235], label: [263, 259, "middle"] },
+  hypothesis: { at: [367, 130], label: [367, 150, "middle"] },
+  experiment: { at: [471, 130], label: [471, 30, "middle"] },
+  log: { at: [575, 290], label: [575, 314, "middle"] },
+  findings: { at: [679, 215], label: [679, 118, "middle"] },
+  reflect: { at: [783, 150], label: [800, 92, "start"] },
+  next: { at: [887, 215], label: [960, 239, "end"] },
 };
-const WIDE_NOTES: Record<string, [number, number, number]> = { hypothesis: [372, 62, -6], log: [384, 562, 3] };
-const WIDE_TRAIL =
-  "M36 300 H70 C120 300 150 240 195 240 C245 240 275 190 320 190 C370 190 400 150 450 150 C500 150 540 230 590 230 " +
-  "C670 230 670 540 580 540 C520 540 490 470 440 470 C390 470 360 390 310 390 C260 390 230 450 180 450 C130 450 60 440 0 440";
+/** x, y, rotation and anchor of the handwritten notes in the wide layout. */
+const WIDE_NOTES: Record<string, [number, number, number, Anchor]> = { hypothesis: [248, 100, -6, "start"], log: [545, 296, 3, "end"] };
+
+/** A smooth trail: flat under each man's feet, curving between stops. */
+function wideTrail(): string {
+  const stops = LOOP_STAGES.map((s) => WIDE[s.key].at);
+  let d = `M22 ${stops[0][1]} H${stops[0][0]}`;
+  for (let i = 1; i < stops.length; i++) {
+    const [[x1, y1], [x2, y2]] = [stops[i - 1], stops[i]];
+    const half = (x2 - x1) / 2;
+    d += ` C${x1 + half} ${y1} ${x2 - half} ${y2} ${x2} ${y2}`;
+  }
+  return `${d} H1000`;
+}
 
 /** Phone layout: every man at x=100, one every STEP px; the trail swings out right, then left. */
 const STEP = 130;
@@ -76,12 +90,12 @@ function Label({ n, title, blurb, x, y, anchor }: { n: number; title: string; bl
 export function JourneyMap() {
   const phoneHeight = phoneY(LOOP_STAGES.length - 1) + 110;
   return (
-    <div className="journey mx-auto max-w-[760px]">
-      <svg viewBox="0 0 680 610" className="hidden w-full sm:block" role="img" aria-labelledby="journey-title">
+    <div className="journey">
+      <svg viewBox="0 0 1000 345" className="hidden w-full sm:block" role="img" aria-labelledby="journey-title">
         <title id="journey-title">One man walking a trail of ups and downs through the nine steps, from a question to the next question</title>
-        <path className="j-trail" d={WIDE_TRAIL} />
-        <circle className="j-dot" cx="36" cy="300" r="3" />
-        <text className="j-mono" x="30" y="288" textAnchor="middle">start</text>
+        <path className="j-trail" d={wideTrail()} />
+        <circle className="j-dot" cx="22" cy="235" r="3" />
+        <text className="j-mono" x="22" y="223" textAnchor="middle">start</text>
         {LOOP_STAGES.map((s) => {
           const { at, label } = WIDE[s.key];
           const note = NOTES[s.key];
@@ -91,14 +105,14 @@ export function JourneyMap() {
               <g transform={`translate(${at[0]} ${at[1]})`}>{FIGURES[s.key]}</g>
               <Label n={s.n} title={s.label} blurb={BLURBS[s.key]} x={label[0]} y={label[1]} anchor={label[2]} />
               {note && notePos && (
-                <text className={`j-hand ${note.className}`} fontSize="18" x={notePos[0]} y={notePos[1]} transform={`rotate(${notePos[2]} ${notePos[0]} ${notePos[1]})`}>
+                <text className={`j-hand ${note.className}`} fontSize="18" x={notePos[0]} y={notePos[1]} textAnchor={notePos[3]} transform={`rotate(${notePos[2]} ${notePos[0]} ${notePos[1]})`}>
                   {note.text}
                 </text>
               )}
             </g>
           );
         })}
-        <g transform="translate(66 444)"><Signpost /></g>
+        <g transform="translate(950 215)"><Signpost flip /></g>
       </svg>
 
       <svg viewBox={`0 0 360 ${phoneHeight}`} className="w-full sm:hidden" role="img" aria-labelledby="journey-title-phone">
