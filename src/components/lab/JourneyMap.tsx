@@ -135,7 +135,7 @@ export function JourneyMap() {
       </svg>
 
       <p className="mt-3 font-hand text-[19px] leading-snug text-red">
-        not a loop. every piece is its own trip, and the next question is where the next one starts.
+        a map of my mood, really. if I look happy, I&apos;m mid-experiment. if I look grumpy, I&apos;ve probably seen the results.
       </p>
     </div>
   );
