@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   publisher: author.name,
   // Lets Google show large image previews and full-length snippets (and so AI Overviews can quote).
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 } },
+  // Bing Webmaster Tools ownership check (public by design; safe to commit).
+  verification: { other: { "msvalidate.01": "413E94CF781BAE11D8E0B2BFDB5B8636" } },
   openGraph: { siteName: site.fullName, type: "website", locale: "en_IN" },
   twitter: { card: "summary_large_image" },
   alternates: { types: { "application/rss+xml": "/rss.xml" } },
