@@ -19,8 +19,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
+/**
+ * Local development only: `DEV_OWNER=1 npm run dev` treats you as signed in, so
+ * the admin can be tested without a GitHub round trip. Next.js sets NODE_ENV to
+ * "production" for every build it deploys, so this can never apply to the live site.
+ */
+const devOwner = process.env.NODE_ENV === "development" && process.env.DEV_OWNER === "1";
+
 /** True when the current request comes from the signed-in owner. */
 export async function isOwner(): Promise<boolean> {
+  if (devOwner) return true;
   const session = await auth();
   return Boolean(session?.user);
 }

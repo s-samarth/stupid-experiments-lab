@@ -28,3 +28,17 @@ export function dayNumber(since: string | Date | null): number | null {
   const ms = Date.now() - new Date(since).getTime();
   return Math.max(1, Math.floor(ms / 86_400_000) + 1);
 }
+
+const relativeFmt = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+/** "just now", "5 minutes ago", "yesterday", then a date after a week. */
+export function formatRelative(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  const seconds = (new Date(value).getTime() - Date.now()) / 1000;
+  const abs = Math.abs(seconds);
+  if (abs < 60) return "just now";
+  if (abs < 3600) return relativeFmt.format(Math.round(seconds / 60), "minute");
+  if (abs < 86_400) return relativeFmt.format(Math.round(seconds / 3600), "hour");
+  if (abs < 7 * 86_400) return relativeFmt.format(Math.round(seconds / 86_400), "day");
+  return formatShortDate(value);
+}

@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "lab", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 }
+    { "name": "lab", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 },
+    { "name": "lab-admin", "runtimeExecutable": "env", "runtimeArgs": ["DEV_OWNER=1", "npm", "run", "dev"], "port": 3000 }
   ]
 }

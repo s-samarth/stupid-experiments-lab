@@ -7,6 +7,8 @@ Readers read, share and see live stats. Only the owner writes.
 **Stack:** Next.js 16 (App Router) · TypeScript · Tailwind v4 · Tiptap editor · Drizzle ORM ·
 Supabase (Postgres + Storage) · Auth.js (GitHub, owner-only) · Vercel.
 
+**Every flow, and the reasoning behind it:** [docs/how-it-works.md](docs/how-it-works.md).
+
 ## How it fits together
 
 - **Posts** start from a fixed template: one heading per loop step (`src/lib/editor/template.ts`).

@@ -49,3 +49,6 @@
 }
 
 .editor-surface figure[data-size="full"] { margin-inline: 0; }
+
+/* The writing area is one big text field: no focus ring around it, like Substack. */
+.editor-surface:focus-visible { outline: none; }

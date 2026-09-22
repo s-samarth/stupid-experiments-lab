@@ -53,7 +53,9 @@ export function clientExtensions({ ask, notify }: Options): AnyExtension[] {
         // The block just before this one: a loop heading means "show its prompt".
         const before = pos > 0 ? editor.state.doc.resolve(pos).nodeBefore : null;
         const prompt = before?.type.name === "heading" ? promptForHeading(before.textContent) : null;
-        return prompt ?? (hasAnchor ? "Start writing, or type / for blocks…" : "");
+        // An otherwise empty post always shows where to start.
+        const onlyBlock = editor.state.doc.childCount === 1;
+        return prompt ?? (hasAnchor || onlyBlock ? "Start writing, or type / for blocks…" : "");
       },
     }),
     ImageDropPaste.configure({ notify }),

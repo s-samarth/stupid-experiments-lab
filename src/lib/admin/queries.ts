@@ -2,12 +2,18 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { db, postReads, posts, questions } from "@/lib/db";
 
+export type AdminPost = Awaited<ReturnType<typeof listAllPosts>>[number];
+
 export function listAllPosts() {
   return db()
     .select({
       id: posts.id,
       slug: posts.slug,
       title: posts.title,
+      subtitle: posts.subtitle,
+      // First words of the post, so an untitled draft is still recognisable.
+      // (Section headings are dropped first so it starts with your own words.)
+      excerpt: sql<string>`left(trim(regexp_replace(regexp_replace(${posts.bodyHtml}, '<h2[^>]*>.*?</h2>', ' ', 'g'), '<[^>]+>', ' ', 'g')), 140)`,
       status: posts.status,
       verdict: posts.verdict,
       publishedAt: posts.publishedAt,

@@ -1,14 +1,19 @@
 "use server";
 
-/** Owner-only server actions for writing, publishing and deleting posts. */
-import { and, eq, ne } from "drizzle-orm";
+/**
+ * Owner-only server actions for writing, publishing and deleting posts.
+ *
+ * Lifecycle: "New post" opens the editor without touching the database. The
+ * first autosave that has real content creates the draft (createDraft), later
+ * saves update it (savePost). An empty post is never stored.
+ */
+import { and, eq, lt, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireOwner } from "@/auth";
 import { db, posts } from "@/lib/db";
 import { renderPost } from "@/lib/editor/render";
-import { loopTemplate } from "@/lib/editor/template";
 import { draftSlug, isDraftSlug, slugify } from "@/lib/slug";
 
 const optionalText = z.string().trim().max(300).nullable().transform((v) => v || null);
@@ -26,31 +31,44 @@ const PostInput = z.object({
 export type PostInput = z.input<typeof PostInput>;
 
 export type SaveResult = { ok: true; slug: string; savedAt: string } | { ok: false; error: string };
+export type CreateResult = { ok: true; id: number | null } | { ok: false; error: string };
 
-/** A new draft, pre-filled with the nine loop headings. */
-export async function createPost() {
+/** Parses the editor's snapshot and renders it; `empty` means there's nothing worth keeping. */
+function prepare(input: PostInput) {
+  const parsed = PostInput.safeParse(input);
+  if (!parsed.success) return { ok: false as const, error: parsed.error.issues[0].message };
+  const { slug, ...data } = parsed.data;
+  const rendered = renderPost(data.body);
+  const values = { ...data, bodyHtml: rendered.html, readingMinutes: rendered.readingMinutes, verdict: rendered.verdict };
+  const empty = !data.title && !data.subtitle && !rendered.html;
+  return { ok: true as const, slug, values, empty };
+}
+
+/** First save of a new post. Returns `id: null` (and stores nothing) while the post is still empty. */
+export async function createDraft(input: PostInput): Promise<CreateResult> {
   await requireOwner();
-  const [row] = await db().insert(posts).values({ slug: draftSlug(), body: loopTemplate() }).returning({ id: posts.id });
-  redirect(`/admin/posts/${row.id}`);
+  const p = prepare(input);
+  if (!p.ok) return { ok: false, error: p.error };
+  if (p.empty) return { ok: true, id: null };
+  const [row] = await db().insert(posts).values({ ...p.values, slug: draftSlug() }).returning({ id: posts.id });
+  revalidatePath("/admin");
+  return { ok: true, id: row.id };
 }
 
 export async function savePost(id: number, input: PostInput): Promise<SaveResult> {
   await requireOwner();
-  const parsed = PostInput.safeParse(input);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
-  const data = parsed.data;
+  const p = prepare(input);
+  if (!p.ok) return { ok: false, error: p.error };
 
   // An empty slug field means "keep the current URL".
-  const { slug: requestedSlug, ...rest } = data;
-  if (requestedSlug) {
-    const clash = await db().select({ id: posts.id }).from(posts).where(and(eq(posts.slug, requestedSlug), ne(posts.id, id))).limit(1);
-    if (clash.length > 0) return { ok: false, error: `Another post already uses /p/${requestedSlug}.` };
+  if (p.slug) {
+    const clash = await db().select({ id: posts.id }).from(posts).where(and(eq(posts.slug, p.slug), ne(posts.id, id))).limit(1);
+    if (clash.length > 0) return { ok: false, error: `Another post already uses /p/${p.slug}.` };
   }
 
-  const rendered = renderPost(data.body);
   const [row] = await db()
     .update(posts)
-    .set({ ...rest, ...(requestedSlug ? { slug: requestedSlug } : {}), bodyHtml: rendered.html, readingMinutes: rendered.readingMinutes, verdict: rendered.verdict })
+    .set({ ...p.values, ...(p.slug ? { slug: p.slug } : {}) })
     .where(eq(posts.id, id))
     .returning({ slug: posts.slug, status: posts.status });
   if (!row) return { ok: false, error: "This post no longer exists." };
@@ -68,6 +86,7 @@ export async function publishPost(id: number, when: string | null): Promise<Save
   const [post] = await db().select().from(posts).where(eq(posts.id, id)).limit(1);
   if (!post) return { ok: false, error: "This post no longer exists." };
   if (!post.title.trim()) return { ok: false, error: "Give it a title before publishing." };
+  if (!post.bodyHtml) return { ok: false, error: "There's nothing in the post yet." };
 
   const at = when ? new Date(when) : (post.publishedAt ?? new Date());
   if (Number.isNaN(at.getTime())) return { ok: false, error: "That date doesn't look right." };
@@ -81,17 +100,40 @@ export async function publishPost(id: number, when: string | null): Promise<Save
   return { ok: true, slug, savedAt: new Date().toISOString() };
 }
 
+/** Takes a post off the site and back to drafts. Its content is kept. */
 export async function unpublishPost(id: number): Promise<void> {
   await requireOwner();
   const [row] = await db().update(posts).set({ status: "draft" }).where(eq(posts.id, id)).returning({ slug: posts.slug });
   if (row) revalidatePublic(row.slug);
 }
 
+/** Deletes a post for good (its read stats go with it). Returns to the posts list. */
 export async function deletePost(id: number): Promise<void> {
   await requireOwner();
   const [row] = await db().delete(posts).where(eq(posts.id, id)).returning({ slug: posts.slug });
   if (row) revalidatePublic(row.slug);
   redirect("/admin");
+}
+
+/**
+ * Removes drafts with no title, subtitle or content that haven't been touched
+ * for 10 minutes (so a draft you're emptying in another tab isn't pulled away).
+ */
+export async function deleteEmptyDrafts(): Promise<number> {
+  await requireOwner();
+  const rows = await db()
+    .delete(posts)
+    .where(
+      and(
+        eq(posts.status, "draft"),
+        eq(posts.title, ""),
+        eq(posts.bodyHtml, ""),
+        sql`coalesce(${posts.subtitle}, '') = ''`,
+        lt(posts.updatedAt, sql`now() - interval '10 minutes'`),
+      ),
+    )
+    .returning({ id: posts.id });
+  return rows.length;
 }
 
 async function uniqueSlug(base: string, id: number): Promise<string> {
@@ -103,7 +145,7 @@ async function uniqueSlug(base: string, id: number): Promise<string> {
   return `${base}-${Date.now()}`;
 }
 
-/** Clears cached pages that might show this post. */
+/** Clears cached pages that might show this post, including the admin list. */
 function revalidatePublic(slug: string) {
-  for (const path of ["/", "/writing", "/questions", "/stats", `/p/${slug}`]) revalidatePath(path);
+  for (const path of ["/", "/writing", "/questions", "/stats", "/admin", `/p/${slug}`]) revalidatePath(path);
 }

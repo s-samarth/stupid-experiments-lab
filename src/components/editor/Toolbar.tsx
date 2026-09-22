@@ -14,7 +14,7 @@ const STYLES = [
   { value: "4", label: "Heading 4 (label)" },
 ];
 
-const btn = "flex h-8 min-w-8 items-center justify-center rounded px-1.5 text-[14px] text-ink hover:bg-paper-deep aria-pressed:bg-amber-soft";
+const btn = "flex h-8 min-w-8 items-center justify-center rounded px-1.5 text-[14px] text-ink hover:bg-paper-deep aria-pressed:bg-amber-soft disabled:opacity-30";
 
 export function Toolbar({ editor, notify }: { editor: Editor; notify: InsertContext["notify"] }) {
   const ask = usePrompt();
@@ -33,6 +33,8 @@ export function Toolbar({ editor, notify }: { editor: Editor; notify: InsertCont
       bullets: e.isActive("bulletList"),
       numbers: e.isActive("orderedList"),
       quote: e.isActive("blockquote"),
+      canUndo: e.can().undo(),
+      canRedo: e.can().redo(),
     }),
   });
 
@@ -42,10 +44,16 @@ export function Toolbar({ editor, notify }: { editor: Editor; notify: InsertCont
     else c.setHeading({ level: Number(v) as 1 | 2 | 3 | 4 }).run();
   };
   const run = (item: InsertItem) => void item.run(editor, { ask, notify });
-  const menu = (group: InsertItem["group"][]) => INSERT_ITEMS.filter((i) => group.includes(i.group));
+  const byKey = (key: string) => INSERT_ITEMS.find((i) => i.key === key)!;
+  // The most-used blocks get their own buttons, like Substack; the rest live under "More".
+  const QUICK = ["image", "embed", "divider"];
+  const more = INSERT_ITEMS.filter((i) => i.group !== "lab" && !QUICK.includes(i.key));
 
   return (
     <div role="toolbar" aria-label="Formatting" className="flex flex-wrap items-center gap-0.5">
+      <button type="button" className={btn} disabled={!s.canUndo} aria-label="Undo (⌘Z)" title="Undo (⌘Z)" onClick={() => editor.chain().focus().undo().run()}>↶</button>
+      <button type="button" className={btn} disabled={!s.canRedo} aria-label="Redo (⇧⌘Z)" title="Redo (⇧⌘Z)" onClick={() => editor.chain().focus().redo().run()}>↷</button>
+      <span className="mx-1 h-5 w-px bg-line" aria-hidden />
       <select value={s.style} onChange={(e) => setStyle(e.target.value)} aria-label="Text style" className="mr-1 h-8 rounded border border-line bg-card px-2 text-[13px]">
         {STYLES.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -63,8 +71,13 @@ export function Toolbar({ editor, notify }: { editor: Editor; notify: InsertCont
       <button type="button" className={btn} aria-pressed={s.bullets} aria-label="Bulleted list" onClick={() => editor.chain().focus().toggleBulletList().run()}>• —</button>
       <button type="button" className={btn} aria-pressed={s.numbers} aria-label="Numbered list" onClick={() => editor.chain().focus().toggleOrderedList().run()}>1.</button>
       <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-      <InsertMenu label="Insert" items={menu(["media", "basic"])} onPick={run} />
-      <InsertMenu label="Lab blocks" items={menu(["lab"])} onPick={run} accent />
+      <button type="button" className={`${btn} gap-1`} title="Upload an image. You can also drag one in or paste it." onClick={() => run(byKey("image"))}>
+        <span aria-hidden>▣</span> Image
+      </button>
+      <button type="button" className={btn} title="YouTube, X, Spotify, Vimeo, Gist or any link" onClick={() => run(byKey("embed"))}>Embed</button>
+      <button type="button" className={btn} aria-label="Divider" title="Divider" onClick={() => run(byKey("divider"))}>—</button>
+      <InsertMenu label="More" items={more} onPick={run} />
+      <InsertMenu label="Lab blocks" items={INSERT_ITEMS.filter((i) => i.group === "lab")} onPick={run} accent />
     </div>
   );
 }

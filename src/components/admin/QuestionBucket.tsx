@@ -11,6 +11,8 @@ type Props = {
   questions: ReviewQuestion[];
   actions: Action[];
   empty: string;
+  /** Extra content under the heading, e.g. the "add a question" form. */
+  children?: React.ReactNode;
 };
 
 const btn = "rounded-note border border-line px-2.5 py-1 text-[12px] hover:border-ink";
@@ -30,7 +32,7 @@ const MOVES: Record<Action, { label: string; className?: string; run: (id: numbe
  * is its own tiny <form> whose action is a server action with the question id
  * pre-filled by `bind`, so it works even before any JavaScript loads.
  */
-export function QuestionBucket({ title, hint, questions, actions, empty }: Props) {
+export function QuestionBucket({ title, hint, questions, actions, empty, children }: Props) {
   return (
     <section className="mt-10">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 border-b border-ink pb-1.5">
@@ -39,6 +41,7 @@ export function QuestionBucket({ title, hint, questions, actions, empty }: Props
         </h2>
         <p className="text-[12px] text-muted">{hint}</p>
       </div>
+      {children}
       <ul>
         {questions.length === 0 && <li className="py-5 font-serif text-muted italic">{empty}</li>}
         {questions.map((q) => (

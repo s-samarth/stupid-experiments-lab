@@ -1,9 +1,11 @@
 "use client";
 
 import type { JSONContent } from "@tiptap/core";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { EditorContent, useEditor } from "@tiptap/react";
-import { useCallback, useMemo, useState } from "react";
-import { savePost } from "@/lib/admin/post-actions";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { createDraft, savePost } from "@/lib/admin/post-actions";
+import { promptForHeading } from "@/lib/loop";
 import { clientExtensions } from "./client-extensions";
 import { EditorTopBar } from "./EditorTopBar";
 import { usePrompt } from "./PromptDialog";
@@ -15,23 +17,27 @@ import { useAutosave } from "./useAutosave";
 import { useToast } from "./useToast";
 
 export type EditablePost = PostSettings & {
-  id: number;
+  /** null for a brand-new post that hasn't been saved yet. */
+  id: number | null;
   title: string;
   subtitle: string | null;
   body: JSONContent;
   status: "draft" | "scheduled" | "published";
 };
 
-type Props = { post: EditablePost };
+type Snapshot = Parameters<typeof savePost>[1];
 
-export function PostEditor({ post }: Props) {
+export function PostEditor({ post }: { post: EditablePost }) {
   const ask = usePrompt();
   const { toast, notify } = useToast();
+  const [postId, setPostId] = useState(post.id);
   const [title, setTitle] = useState(post.title);
   const [subtitle, setSubtitle] = useState(post.subtitle ?? "");
   const [body, setBody] = useState<JSONContent>(post.body);
   const [settings, setSettings] = useState<PostSettings>(post);
   const [showSettings, setShowSettings] = useState(false);
+  // The id is also kept in a ref so the save callback always sees the newest one.
+  const idRef = useRef(post.id);
   // Extensions are created once; node views read `ask` through React context.
   const extensions = useMemo(() => clientExtensions({ ask, notify }), [ask, notify]);
 
@@ -44,23 +50,35 @@ export function PostEditor({ post }: Props) {
     onUpdate: ({ editor: e }) => setBody(e.getJSON()),
   });
 
-  const save = useCallback(
-    async (snapshot: Parameters<typeof savePost>[1]) => {
-      const r = await savePost(post.id, snapshot);
-      return r.ok ? null : r.error;
-    },
-    [post.id],
-  );
-  const { status: saveStatus, error } = useAutosave({ ...settings, title, subtitle: subtitle || null, body: body as { type: "doc" } }, save);
+  const save = useCallback(async (snapshot: Snapshot) => {
+    if (idRef.current === null) {
+      // First save: only creates the draft once there's something in it.
+      const r = await createDraft(snapshot);
+      if (!r.ok) return r.error;
+      if (r.id === null) return null;
+      idRef.current = r.id;
+      setPostId(r.id);
+      // Swap the address to the real post without reloading the editor.
+      window.history.replaceState(null, "", `/admin/posts/${r.id}`);
+      return null;
+    }
+    const r = await savePost(idRef.current, snapshot);
+    return r.ok ? null : r.error;
+  }, []);
+
+  const snapshot: Snapshot = { ...settings, title, subtitle: subtitle || null, body: body as { type: "doc" } };
+  const { status: saveStatus, error, flush } = useAutosave(snapshot, save);
 
   return (
     <div>
       <EditorTopBar
-        postId={post.id}
+        postId={postId}
         status={post.status}
         slug={post.slug}
         saveStatus={saveStatus}
         saveError={error}
+        flush={flush}
+        wordCount={editor ? countWords(editor.state.doc) : 0}
         onToggleSettings={() => setShowSettings((s) => !s)}
         notify={notify}
       />
@@ -69,7 +87,7 @@ export function PostEditor({ post }: Props) {
           <Toolbar editor={editor} notify={notify} />
         </div>
       )}
-      <div className={`mx-auto grid max-w-6xl gap-8 px-5 ${showSettings ? "lg:grid-cols-[minmax(0,1fr)_260px]" : ""}`}>
+      <div className={`mx-auto grid max-w-6xl gap-8 px-5 ${showSettings ? "lg:grid-cols-[minmax(0,1fr)_280px]" : ""}`}>
         <div className="mx-auto w-full max-w-[680px] py-10">
           <textarea
             value={title}
@@ -94,11 +112,21 @@ export function PostEditor({ post }: Props) {
         </div>
         {showSettings && (
           <div className="border-l border-line py-8 pl-6">
-            <SettingsPanel settings={settings} onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))} title={title} />
+            <SettingsPanel settings={settings} onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))} title={title} notify={notify} />
           </div>
         )}
       </div>
       {toast}
     </div>
   );
+}
+
+/** Words you've written, leaving out the template's own section headings. */
+function countWords(doc: ProseMirrorNode): number {
+  let n = 0;
+  doc.descendants((node) => {
+    if (node.type.name === "heading" && promptForHeading(node.textContent)) return false;
+    if (node.isText) n += (node.text ?? "").split(/\s+/).filter(Boolean).length;
+  });
+  return n;
 }
